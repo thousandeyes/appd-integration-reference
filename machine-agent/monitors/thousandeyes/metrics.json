@@ -1,0 +1,20 @@
+{ 
+    "connectTime": "Connect Time",
+    "receiveTime": "Receive Time",
+    "responseTime": "Response Time",
+    "totalSize": "Total Size", 
+    "domLoadTime": "DOM Load",
+    "pageLoadTime": "Page Load",
+    "dnsTime": "DNS Time",
+    "numRedirects": "Redirectes",
+    "responseCode": "Response Code",
+    "totalTime": "Total Time",
+    "waitTime": "Wait Time",
+    "wireSize": "Wire Size",
+    "avgLatency": "Avg Latency",
+    "loss": "Loss",
+    "maxLatency": "Max Latency",
+    "jitter": "Jitter",
+    "minLatency": "Min Latency"
+} 
+    

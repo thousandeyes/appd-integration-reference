@@ -1,0 +1,11 @@
+region: us
+web_addr: 0.0.0.0:4040
+log: /var/log/ngrok.log
+log_level: info
+log_format: json
+console_ui: "false"
+tunnels:
+  shapeshifter:
+    proto: http
+    addr: https://127.0.0.1:8080
+    inspect: true

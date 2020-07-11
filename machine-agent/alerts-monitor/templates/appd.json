@@ -1,0 +1,31 @@
+/*
+ * ThousandEyes Alert to AppDynamics Alert API Transformation
+ * 
+ * AppD Alert reference: https://docs.appdynamics.com/display/PRO45/Events+and+Action+Suppression+API
+ * ThousandEyes Alert Referencne: https://docs.thousandeyes.com/product-documentation/alerts/using-webhooks-server-sample-code-included
+ *
+ * Endpoint: "/appd"
+ * Request: https://<appdinstance url>/controller/rest/applications/<applicationname>/events?\
+ *   severity=<severity>&\
+ *   eventtype=CUSTOM&\
+ *   customeventtype=<alertevent>&\
+ *   summary=<summary>&\
+ *   comment=<comment>
+ *
+ * Auth: Passthrough (use credentials defined in ThousandEyes webook notification)
+ * Data: No data payload
+ */
+{
+  "endpoint": "appd",
+  "auth": "passthrough",
+  "parameters": {
+    "alertevent": "{{eventType}}",
+    "severity": "WARN",
+    "eventtype": "CUSTOM",
+    "summary": "ThousandEyes {{alert.type}} (<a href=\"{{alert.permalink}}\">Link</a>)",
+    "comment": "ThousandEyes Alert: {{alert.type}} {{alert.ruleExpression}} affecting {{alert.violationCount}} locations.\n <a href=\"{{alert.permalink}}\">ThousandEyes Link</a>"
+  },
+  "path": "/controller/rest/applications/{{alert.testName}}/events",
+  "method": "POST",
+  "data": ""
+}

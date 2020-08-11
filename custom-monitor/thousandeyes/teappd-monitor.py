@@ -141,33 +141,37 @@ def query_latest_data(username, authtoken, accountname, testname):
             update_dict(aggdata, key, {'responseTime':''})
             #update_dict(aggdata, key, {'throughput':''})
 
-            if test['type'] == 'page-load' :
+            if test['type'] == 'page-load' or (test['type'] == 'web-transactions') :
                 testdata = teApi.getTestPageloadData(test['testId'])
-                for agentdata1 in testdata['web']['pageLoad'] :
-                    key = testname + " - " + agentdata1['agentName'] 
-                    update_dict(aggdata, key, agentdata1)
-                    update_dict(aggdata, key, {'target':testdata['web']['test']['url']})
+                if testdata :
+                    for agentdata1 in testdata['web']['pageLoad'] :
+                        key = testname + " - " + agentdata1['agentName'] 
+                        update_dict(aggdata, key, agentdata1)
+                        update_dict(aggdata, key, {'target':testdata['web']['test']['url']})
 
-            if (test['type'] == 'page-load') or (test['type'] == 'http-server') :
+            if (test['type'] == 'page-load') or (test['type'] == 'web-transactions') or (test['type'] == 'http-server') :
                 httpdata = teApi.getTestHttpData(test['testId'])
-                for agentdata2 in httpdata['web']['httpServer'] :
-                    key = testname + " - " + agentdata2['agentName'] 
-                    update_dict(aggdata, key, agentdata2)
+                if httpdata :
+                    for agentdata2 in httpdata['web']['httpServer'] :
+                        key = testname + " - " + agentdata2['agentName'] 
+                        update_dict(aggdata, key, agentdata2)
 
-            if (test['type'] == 'page-load') or (test['type'] == 'http-server') or (test['type'] == 'agent-to-server') :
+            if (test['type'] == 'page-load') or (test['type'] == 'web-transactions') or (test['type'] == 'http-server') or (test['type'] == 'agent-to-server') :
                 networkdata = teApi.getTestNetData(test['testId'])
-                for agentdata3 in networkdata['net']['metrics'] :
-                    key = testname + " - " + agentdata3['agentName'] 
-                    # Convert date time to ISO 
-                    agentdata3['date'] = datetime.strptime (agentdata3['date'], '%Y-%m-%d %H:%M:%S').isoformat()
-                    update_dict(aggdata, key, agentdata3)
+                if networkdata:
+                    for agentdata3 in networkdata['net']['metrics'] :
+                        key = testname + " - " + agentdata3['agentName'] 
+                        # Convert date time to ISO 
+                        agentdata3['date'] = datetime.strptime (agentdata3['date'], '%Y-%m-%d %H:%M:%S').isoformat()
+                        update_dict(aggdata, key, agentdata3)
             else :
-                print (json.dumps({"error": "Test " + testname + " is not a Pageload, HTTP, or Network test"}))
+                print (json.dumps({"error": "Test " + testname + " (" + test['type'] + ") is not a Pageload, HTTP, or Network test"}))
 
 
 
     except Exception as e:
         print (json.dumps({"error": "Could not load test {} from account {}. (Exception: {})".format(testname, accountname, e)}))
+        #print (json.dumps())
         
     
     #print (json.dumps(aggdata))
@@ -218,13 +222,11 @@ if __name__ == '__main__':
     print ("\n\n")
     #print (json.dumps(testdata))
     for testround in testdata :
-    #     for metric in metrics :
-    #         if metric in testround and testround[metric] != "":
-    #             print ("name=Custom Metrics|{0}|{1}|{2}, value={3}".format(testround['testName'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
-          print(json.dumps(testround))
-    #     #jsondata = json.dumps(testround)
-    #     print (testround['date'])
-    #     print(json.dumps(testround))
+        for metric in metrics :
+            if metric in testround and testround[metric] != "":
+                print ("name=Custom Metrics|{0}|{1}|{2}, value={3}".format(testround['testName'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
+
+    # Uncomment following to also push to Analytics API:
     #     post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
     #         connectionInfo['analytics-api'],
     #         schemaname, 
@@ -232,6 +234,4 @@ if __name__ == '__main__':
     #         connectionInfo['api-key'],
     #         json.dumps(testround))
     #     os.system (post)
-        #print (json.dumps(metric)) #post = "curl -s -X POST -H \"User-Agent: ThousandEyes\" {} -d \'{}\'".format(targeturl, json.dumps(metric))
-        #os.system (post)
 

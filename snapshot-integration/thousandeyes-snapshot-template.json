@@ -1,0 +1,31 @@
+{
+  "name": "ThousandEyes Snapshot Template",
+  "description": null,
+  "version": 1,
+  "healthRuleMembers": [],
+  "actionMembers": [
+    {
+      "model": {
+        "id": 3884,
+        "actionType": "HTTP_REQUEST",
+        "name": "ThousndEyes Snapshot",
+        "httpRequestTemplateName": "ThousandEyes Snapshot",
+        "customTemplateVariables": [
+          {
+            "key": "Date",
+            "value": "2/5/2020"
+          },
+          {
+            "key": "Test",
+            "value": "customerapp"
+          }
+        ]
+      },
+      "memberType": "ACTION"
+    }
+  ],
+  "scheduleMembers": [],
+  "actionSuppressionMembers": [],
+  "emailDigestMembers": [],
+  "policyMembers": []
+}

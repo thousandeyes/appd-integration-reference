@@ -1,5 +1,5 @@
 {
 	"analytics-api":"https://analytics.api.appdynamics.com",
-	"account-id":"thousandeyesinc_b454a33d-4470-484b-85ea-187b9b2c854a",
-	"api-key":"ffe982d6-b573-4d44-b981-0dda53374b74"
+	"account-id":"<your full appd account id>", 
+	"api-key":"<your appd api key>"
 }

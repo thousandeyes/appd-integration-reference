@@ -68,6 +68,38 @@ class TeApi:
     def getTestDetailedPathTrace(self, testId, agentId, roundId):
         return self.get('net/path-vis/' + str(int(testId)) + "/" + str(int(agentId)) + "/" + str(int(roundId)))
 
+
+# 
+# Extract App name from test metadata OR test name
+#
+# metadata json schema:
+# { "appd_application":"<appd application name>", "appd_tier":"<appd application tier>", "appd_node":"<appd tier node>" }
+# 
+# OR
+# 
+# The Machine Agent has to be associated with the target or destination for the metrics. If you attempt to publish metrics to a tier that is not associated with the Machine Agent, the metrics are not reported.
+#
+# Convention: testname = <application>-<tier>
+# Example: adcapital-frontend
+# Server|Component:AccountService|Custom Metrics|Path|
+# name="Server|Component:<tier-name>|JMX|Pool|First|pool usage",value=10
+# Server|Component:<tier-name-or-tier-id>
+#
+
+
+
+def extractTestMetadata(testDetails):
+    try:
+        metadata=json.loads(testDetails['description'])
+        appinfo=dict (zip (['app','tier','node'], [metadata['appd_application'],metadata['appd_tier'],metadata['appd_node']]))
+    except:
+        appinfo=dict (zip (['app','tier','node'], zip(testDetails['testName'].split('-'))))
+        
+    if (len(appinfo) < 3) : 
+        appinfo.extend((3-len(appinfo)) * [None])
+
+    return appinfo
+
 # Helper function for updating the aggregated JSON metrics data
 def update_dict (dictionary, key, data):
     if key in dictionary : 
@@ -84,12 +116,6 @@ def query_agent_details (teApi, agentdata):
     for group in (group for group in agentdata['groups'] if group['groupId'] > 0):
         agentdata['tags'].update({ group['name'].split(': ')[0] : group['name'].split(': ')[1] }) if ':' in group['name']  else agentdata['tags'].update({ group['name'] : group['name'] })
 
-
-    # "application": "string", 
-    # "tier": "string", 
-    # Convention: testname = <application>-<tier>
-    # Example: adcapital-frontend
-
 def query_latest_data(username, authtoken, accountname, testname):
     try :
         aggdata = {}
@@ -103,9 +129,8 @@ def query_latest_data(username, authtoken, accountname, testname):
         # testDetails['groups'] = {}
         # for group in (group for group in testDetails['groups'] if group['groupId'] > 0):
         #     testDetails['tags'].update({ group['name'].split(': ')[0] : group['name'].split(': ')[1] }) if ':' in group['name']  else testDetails['tags'].update({ group['name'] : group['name'] })
-        appinfo=testname.split('-')
-        if (len(appinfo) < 3) : 
-            appinfo.extend((3-len(appinfo)) * [None])
+        
+        appinfo = extractTestMetadata(testDetails)
 
         for agentdata in testDetails['agents']:
 
@@ -120,9 +145,9 @@ def query_latest_data(username, authtoken, accountname, testname):
             # update_dict(agentdata, 'tags', testDetails['tags'])
 
             update_dict(aggdata, key, {'testName':testname})
-            update_dict(aggdata, key, {'app':appinfo[0]})
-            update_dict(aggdata, key, {'tier':appinfo[1]})
-            update_dict(aggdata, key, {'node':appinfo[2]})
+            update_dict(aggdata, key, {'app':appinfo['app']})
+            update_dict(aggdata, key, {'tier':appinfo['tier']})
+            update_dict(aggdata, key, {'node':appinfo['node']})
 
             update_dict(aggdata, key, {'agentName':agentdata['agentName']})
 
@@ -139,7 +164,6 @@ def query_latest_data(username, authtoken, accountname, testname):
             update_dict(aggdata, key, {'errorDetails':''})
             update_dict(aggdata, key, {'receiveTime':''}) 
             update_dict(aggdata, key, {'responseTime':''})
-            #update_dict(aggdata, key, {'throughput':''})
 
             if test['type'] == 'page-load' or (test['type'] == 'web-transactions') :
                 testdata = teApi.getTestPageloadData(test['testId'])
@@ -166,21 +190,15 @@ def query_latest_data(username, authtoken, accountname, testname):
                         update_dict(aggdata, key, agentdata3)
             else :
                 print (json.dumps({"error": "Test " + testname + " (" + test['type'] + ") is not a Pageload, HTTP, or Network test"}))
-
-
-
     except Exception as e:
         print (json.dumps({"error": "Could not load test {} from account {}. (Exception: {})".format(testname, accountname, e)}))
-        #print (json.dumps())
         
-    
-    #print (json.dumps(aggdata))
     return aggdata
 
-
 if __name__ == '__main__':
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 3:
         print (json.dumps({"Usage": "te-monitor <account name> <testname 1> <testname N>"}))
+        exit(0)
     
     accountgroup = sys.argv[1]
     tests = sys.argv[2:len(sys.argv)]
@@ -221,12 +239,12 @@ if __name__ == '__main__':
     for test in tests :
         # aggregate test data across all tests as an array of flattened test metric objects
         testdata.extend(list((query_latest_data (username, authtoken, accountgroup, test)).values()))
+
     for testround in testdata :
         for metric in metrics :
             if metric in testround and testround[metric] != "":
-                print ("name=Custom Metrics|{0}|{1}|{2}, value={3}".format(testround['testName'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
-
-    
+                print ("name=Custom Metrics|{0}|{1}|{2}, value={3}".format(testround['app'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
+                
         post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
             connectionInfo['analytics-api'],
             schemaname, 

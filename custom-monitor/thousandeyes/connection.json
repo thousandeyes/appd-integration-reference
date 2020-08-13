@@ -3,5 +3,5 @@
 	"account-id":"<AppDynamics Global Account ID>", 
 	"api-key":"<AppDynamics API Key>",
 	"te-email":"<ThousandEyes Email>",
-	"te-api-token":"<ThousandEyes API Key>",
+	"te-api-key":"<ThousandEyes API Key>"
 }

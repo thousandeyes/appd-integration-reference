@@ -197,7 +197,7 @@ if __name__ == '__main__':
     schema=""
 
     # https://docs.appdynamics.com/display/PRO45/Analytics+Events+API
-    with open('schema.json') as f_schema:
+    with open('analytics-schema.json') as f_schema:
         schema = json.loads(f_schema.read())
 
     metrics={}

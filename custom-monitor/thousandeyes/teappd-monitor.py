@@ -180,14 +180,18 @@ def query_latest_data(username, authtoken, accountname, testname):
 
 if __name__ == '__main__':
     if len(sys.argv) < 5:
-        print (json.dumps({"Usage": "te-monitor <account name> <login email> <api token> <testname 1> <testname N>"}))
+        print (json.dumps({"Usage": "te-monitor <account name> <testname 1> <testname N>"}))
     
     accountgroup = sys.argv[1]
-    username = sys.argv[2]
-    authtoken = sys.argv[3]
-    tests = sys.argv[4:len(sys.argv)]
-    targeturl = "https://new-feature-testing.appspot.com/tepush"
+    tests = sys.argv[2:len(sys.argv)]
+    
+    connectionInfo = {}
+    with open('connection.json') as f:
+        connectionInfo = json.loads(f.read())
 
+    username = connectionInfo['te-email']
+    authtoken = connectionInfo['te-api-key']
+    
     testdata = []
     schemaname = "thousandeyes"
     schema=""
@@ -201,8 +205,7 @@ if __name__ == '__main__':
         metrics = json.loads(f_metrics.read())
 
 
-    with open('connection.json') as f:
-        connectionInfo = json.loads(f.read())
+    if connectionInfo['account-id'] and connectionInfo['api-key'] :
         try :
             os.system('curl -s -X POST "' + connectionInfo['analytics-api'] + '/events/schema/' + schemaname + '" \
             -H"X-Events-API-AccountName:' + connectionInfo['account-id'] + '" \
@@ -213,25 +216,23 @@ if __name__ == '__main__':
         # X-Events-API-AccountName:<global_account_name>
         # X-Events-API-Key:<api_key>
         except :
-            print ()
+            print("Failed to create Analytics schema.", file=sys.stderr)
 
     for test in tests :
         # aggregate test data across all tests as an array of flattened test metric objects
         testdata.extend(list((query_latest_data (username, authtoken, accountgroup, test)).values()))
-    
-    print ("\n\n")
-    #print (json.dumps(testdata))
     for testround in testdata :
         for metric in metrics :
             if metric in testround and testround[metric] != "":
                 print ("name=Custom Metrics|{0}|{1}|{2}, value={3}".format(testround['testName'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
 
+    
+        post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
+            connectionInfo['analytics-api'],
+            schemaname, 
+            connectionInfo['account-id'],
+            connectionInfo['api-key'],
+            json.dumps(testround))
     # Uncomment following to also push to Analytics API:
-    #     post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
-    #         connectionInfo['analytics-api'],
-    #         schemaname, 
-    #         connectionInfo['account-id'],
-    #         connectionInfo['api-key'],
-    #         json.dumps(testround))
     #     os.system (post)
 

@@ -1,5 +1,7 @@
 {
 	"analytics-api":"https://analytics.api.appdynamics.com",
-	"account-id":"<your full appd account id>", 
-	"api-key":"<your appd api key>"
+	"account-id":"<your AppDynamics Global Account ID>", 
+	"api-key":"<your AppDynamics API Key>",
+	"te-email":"<your ThousandEyes Email>",
+	"te-api-token":"<your ThousandEyes API Key>",
 }

@@ -196,19 +196,14 @@ def query_latest_data(username, authtoken, accountname, testname):
     return aggdata
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print (json.dumps({"Usage": "te-monitor <account name> <testname 1> <testname N>"}))
-        exit(0)
-    
-    accountgroup = sys.argv[1]
-    tests = sys.argv[2:len(sys.argv)]
-    
     connectionInfo = {}
     with open('config.json') as f:
         connectionInfo = json.loads(f.read())
 
     username = connectionInfo['te-email']
     authtoken = connectionInfo['te-api-key']
+    accountgroup = connectionInfo['te-accountgroup']
+    tests = connectionInfo['te-api-key']
     
     testdata = []
     schemaname = "thousandeyes"

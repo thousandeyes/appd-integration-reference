@@ -79,6 +79,59 @@
     Note: The number of characters up to but not including the last vertical bar must not exceed 95.  -->
 
     <machine-path></machine-path>
-    <!--application-name>samplenodejs</application-name-->
+
+    <!-- The name of the logical business application that this JVM node belongs to. This is not the deployment name (ear/war/jar) on the application server. If a business application of the configured name does not exist, it is created automatically.-->
+    <application-name></application-name>
+
+    <!-- The name of the logical tier that this JVM node belongs to. This is not the deployment name (ear/war/jar) on the application server. If a tier of the configured name does not exist, it is created automatically. -->
+    <tier-name></tier-name>
+
+    <!-- The name of the JVM node. When not specified, this defaults to Node1 for the Machine Agent. -->
+    <node-name></node-name>
+    <!--Application Name
+
+Element in controller-info.xml:  <application-name>
+
+System Property: -Dappdynamics.agent.applicationName
+
+Environment Variable: APPDYNAMICS_AGENT_APPLICATION_NAME
+
+Type: String
+
+Defaults: None
+
+Required: No. See Machine Agent Installation Scenarios
+
+Node Name 
+
+
+Element in controller-info.xml: <node-name>
+
+System Property: -Dappdynamics.agent.nodeName
+
+Environment Variable: APPDYNAMICS_AGENT_NODE_NAME
+
+Type: String
+
+Defaults: None
+
+Required: No. See Machine Agent Installation Scenarios
+
+Tier Name 
+
+
+Element in controller-info.xml: <tier-name>
+
+System Property: -Dappdynamics.agent.tierName
+
+Environment Variable: APPDYNAMICS_AGENT_TIER_NAME
+
+Type: String
+
+Defaults: None
+
+Required: No. See Machine Agent Installation Scenarios-->
+
+
 
 </controller-info>

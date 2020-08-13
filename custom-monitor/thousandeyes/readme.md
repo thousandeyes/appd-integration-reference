@@ -9,17 +9,19 @@ Before the extension can be used the following prequistates must be in place:
 
 * This extension uses a Standalone Machine Agent. For more details on downloading these products, please visit https://docs.appdynamics.com/display/PRO45/Extensions+and+Custom+Metrics. The extension needs to be able to connect to ThousandEyes and AppD in order to collect and send metrics. ** Note ** - the Machine Agent does NOT need to run in the same environemnt as your application.
 
-
-## Setup and Usage
+## Manual Setup and Usage
 
 Copy the `thousandeyes` folder to `<appdinstall>/machine-agent/monitors/thousandeyes`. 
 
 Update the configuration files with your connection and test info:
 
-#### connection.json
+#### config.json
 
 * The `account-id` is your full Global Account Name located under License->Account (in the AppD controller UI).
 * The `api-key` is your account Access Key under License->Account (or Rules if you have those setup).
+* 
+* `te-account group` - the ThousandEyes Account Group name
+* `te-tests` - a list of tests to pull data from. Multiple tests supported.
 
 ```
 {
@@ -27,26 +29,14 @@ Update the configuration files with your connection and test info:
     "account-id":"<AppDynamics Global Account ID>", 
     "api-key":"<AppDynamics API Key>",
     "te-email":"<ThousandEyes Email>",
-    "te-api-key":"<ThousandEyes API Key>"
+    "te-api-key":"<ThousandEyes API Key>",
+    "te-account-group":"<ThousandEyes Account Name>",
+    "te-tests":["testA", "testB"]
 }
 ```
 
-#### teappd-monitor.sh
-Specify the ThousandEyes test and connection info to pull metrics from when calling Python script:
 
-`teappd-monitor.py "<account group>" <test name> `
-
-* account group - the ThousandEyes Account Group name
-* test - the name of the test to pull data from
-
-Multiple tests can be specified and multiple calls can be made to poll multiple account groups:
-
-```
-./teappd-monitor.py "MyAccountGroup" "MyTestA" "MyTestB"
-./teappd-monitor.py "MyOtherAccountGroup" "MyTestC"
-```
-
-**NOTE** The AppDynamics `Application`, `Tier`, and `Node` MUST be specified as metadata in the `Description` section of your ThousandEyes test. Metadata is json format:
+** Note: ** the AppDynamics `Application`, `Tier`, and `Node` must be specified as metadata in the `Description` section of any ThousandEyes tests that data is being pulled from. Metadata is json format:
 
 ```json
 { 
@@ -55,6 +45,16 @@ Multiple tests can be specified and multiple calls can be made to poll multiple 
     "appd_node":"<appd tier node>"
 }
 ```
+
+** NOTE: ** 
+When using ** Custom Metrics **, a single Machine Agent can only report metrics for a single Application in AppDynamics. See [https://docs.appdynamics.com/display/PRO40/Associate+Standalone+Machine+Agents+with+Applications](AppD Doc PRO40). To associate the MA with an Application 
+* In the AppDynamics Agents window, select a Machine Agent. Click Associate with an Application. OR
+* Deploy the machine agent on the same host as the app / Application Agent.
+
+## Configuring a Machine Agent
+#### configuration.env
+
+Create .setup.sh and call that in Dockerfile.
 
 #### Install Python
 For this example we're using a python script, so Python3 needs to be installed.
@@ -94,5 +94,10 @@ try building container locally
 
 
 
+
+#### Note on Metrics
+
+* Metrics with the Custom Metrics prefix are common across all tiers in your application
+* Metrics with the `Server|Component:<tier-name-or-tier-id>`` prefix appear only under the specified tier. If you attempt to publish metrics to a tier that is not associated with the Machine Agent, the metrics are not reported.
 
 

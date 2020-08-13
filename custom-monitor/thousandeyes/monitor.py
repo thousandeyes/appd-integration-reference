@@ -204,7 +204,7 @@ if __name__ == '__main__':
     tests = sys.argv[2:len(sys.argv)]
     
     connectionInfo = {}
-    with open('connection.json') as f:
+    with open('config.json') as f:
         connectionInfo = json.loads(f.read())
 
     username = connectionInfo['te-email']
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     schema=""
 
     # https://docs.appdynamics.com/display/PRO45/Analytics+Events+API
-    with open('analytics-schema.json') as f_schema:
+    with open('schema.json') as f_schema:
         schema = json.loads(f_schema.read())
 
     metrics={}

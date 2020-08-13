@@ -14,7 +14,7 @@
         <executable-task>
             <type>file</type>
              <!-- Use only one file element per os-type. -->
-            <file os-type="linux">teappd-monitor.sh</file>
+            <file os-type="linux">monitor.sh</file>
         </executable-task>
     </monitor-run-task>
 </monitor>

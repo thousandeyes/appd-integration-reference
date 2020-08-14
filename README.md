@@ -1,4 +1,4 @@
-# AppD Reference Integration
+# AppDynamics Reference Integration
 
 This project is a reference example of how to integrate ThosandEyes and AppDyanmics. It includes the following examples:
 

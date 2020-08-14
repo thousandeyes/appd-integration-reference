@@ -76,18 +76,15 @@ class TeApi:
 # { "appd_application":"<appd application name>", "appd_tier":"<appd application tier>", "appd_node":"<appd tier node>" }
 # 
 # OR
-# 
-# The Machine Agent has to be associated with the target or destination for the metrics. If you attempt to publish metrics to a tier that is not associated with the Machine Agent, the metrics are not reported.
 #
 # Convention: testname = <application>-<tier>
-# Example: adcapital-frontend
-# Server|Component:AccountService|Custom Metrics|Path|
-# name="Server|Component:<tier-name>|JMX|Pool|First|pool usage",value=10
-# Server|Component:<tier-name-or-tier-id>
+# Test Name example: adcapital-frontend
+# 
+# The Machine Agent has to be associated with the target app for the metrics. If you attempt to publish metrics to a tier that is not associated with the Machine Agent, the metrics are not reported.
 #
-
-
-
+# name="Server|Component:<tier-name>|JMX|Pool|First|pool usage",value=10
+# name="Server|Component:frontend|JMX|Pool|First|pool usage",value=10
+#
 def extractTestMetadata(testDetails):
     try:
         metadata=json.loads(testDetails['description'])
@@ -205,7 +202,7 @@ if __name__ == '__main__':
     accountgroup = connectionInfo['te-accountgroup']
     tests = connectionInfo['te-tests']
     
-    testdata = []
+    # Hardcoding schema name to "thousandeyes"
     schemaname = "thousandeyes"
     schema=""
 
@@ -217,20 +214,18 @@ if __name__ == '__main__':
     with open('metrics.json') as f_metrics:
         metrics = json.loads(f_metrics.read())
 
-
     if connectionInfo['account-id'] and connectionInfo['api-key'] :
         try :
             os.system('curl -s -X POST "' + connectionInfo['analytics-api'] + '/events/schema/' + schemaname + '" \
             -H"X-Events-API-AccountName:' + connectionInfo['account-id'] + '" \
             -H"X-Events-API-Key:' + connectionInfo['api-key'] + '" -H"Content-type: application/vnd.appd.events+json;v=2" \
             -d \'{"schema" : ' + json.dumps(schema) + '} \' &>/dev/null')
-
-        # PATCH http://analytics.api.example.com/events/schema/{schemaName}
-        # X-Events-API-AccountName:<global_account_name>
-        # X-Events-API-Key:<api_key>
         except :
-            print("Failed to create Analytics schema.", file=sys.stderr)
+            pass
+            #print("Failed to create Analytics schema.", file=sys.stderr)
 
+
+    testdata = []
     for test in tests :
         # aggregate test data across all tests as an array of flattened test metric objects
         testdata.extend(list((query_latest_data (username, authtoken, accountgroup, test)).values()))
@@ -238,15 +233,18 @@ if __name__ == '__main__':
     for testround in testdata :
         for metric in metrics :
             if metric in testround and testround[metric] != "":
-                print ("name=Custom Metrics|{0}|{1}|{2}, value={3}".format(testround['app'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
                 print ("name=Server|Component|{0}|{1}|{2}, value={3}".format(testround['tier'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
-                
-        post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
-            connectionInfo['analytics-api'],
-            schemaname, 
-            connectionInfo['account-id'],
-            connectionInfo['api-key'],
-            json.dumps(testround))
-    # Uncomment following to also push to Analytics API:
-    #     os.system (post)
+        try:
+            post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
+                connectionInfo['analytics-api'],
+                schemaname, 
+                connectionInfo['account-id'],
+                connectionInfo['api-key'],
+                json.dumps(testround))
+
+            # Comment out the following if not using Analytics:
+            os.system (post)
+        except Exception as e:
+            # TODO: Print error to separate log file. Stderr will corrupt Custom Metrics
+            pass     
 

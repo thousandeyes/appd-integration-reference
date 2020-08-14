@@ -1,0 +1,53 @@
+{
+  "name": "ThousandEyes Alert",
+  "description": "Example of alert template to trigger on an incoming Alert from ThousandEyes (custom event)",
+  "version": 1,
+  "healthRuleMembers": [],
+  "actionMembers": [],
+  "scheduleMembers": [],
+  "actionSuppressionMembers": [],
+  "emailDigestMembers": [],
+  "policyMembers": [
+    {
+      "model": {
+        "id": 12546,
+        "name": "ThousandEyes Alert",
+        "enabled": true,
+        "executeActionsInBatch": true,
+        "frequency": null,
+        "actions": [
+          {
+            "actionName": "HttpDiagnostic",
+            "actionType": "DIAGNOSTIC_BUSINESS_TRANSACTIONS"
+          }
+        ],
+        "events": {
+          "healthRuleEvents": {
+            "healthRuleEventTypes": [
+              "HEALTH_RULE_OPEN_WARNING",
+              "HEALTH_RULE_OPEN_CRITICAL",
+              "HEALTH_RULE_CONTINUES_CRITICAL",
+              "HEALTH_RULE_CONTINUES_WARNING"
+            ],
+            "healthRuleScope": {
+              "healthRuleScopeType": "ALL_HEALTH_RULES"
+            }
+          },
+          "otherEvents": [],
+          "anomalyEvents": [],
+          "customEvents": [
+            {
+              "eventName": "ThousandEyesAlert",
+              "propertyMatchCriteria": "ANY",
+              "keyValuePairArray": []
+            }
+          ]
+        },
+        "selectedEntities": {
+          "selectedEntityType": "ANY_ENTITY"
+        }
+      },
+      "memberType": "POLICY"
+    }
+  ]
+}

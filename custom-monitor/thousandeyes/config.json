@@ -5,5 +5,5 @@
 	"te-email":"<ThousandEyes Email>",
 	"te-api-key":"<ThousandEyes API Key>",
 	"te-accountgroup":"<ThousandEyes Account Group>",
-	"te-tests":["<ThousandEyes Tests>"]
+	"te-tests":["<List of ThousandEyes Test Names>"]
 }

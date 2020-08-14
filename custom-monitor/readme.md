@@ -9,7 +9,7 @@ Before the extension can be used the following prequistates must be in place:
 
 * This extension uses a Standalone Machine Agent. For more details on downloading these products, please visit https://docs.appdynamics.com/display/PRO45/Extensions+and+Custom+Metrics. The extension needs to be able to connect to ThousandEyes and AppD in order to collect and send metrics. 
  
-**Note** - the ThousandEyes Monitor Machine Agent does NOT need to run in the same environemnt as your application.
+**Note** - The ThousandEyes Monitor Machine Agent does NOT need to run in the same environemnt as your application.
 **Note** - When using Custom Metrics, you must deploy a separate machine agent for each Application you want to monitor. Using Analytics you can monitor multiple applications with a single Machine Agent.
 
 ## Manual Setup and Usage

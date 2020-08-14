@@ -1,12 +1,20 @@
 # AppD Reference Integration
 
-This project is a reference example of how to integrate ThosandEyes and AppDyanmics. This the following integration points:
+This project is a reference example of how to integrate ThosandEyes and AppDyanmics. It includes the following examples:
 
-* Example of setting up and handing ThousandEyes Alerts in AppD and how to setup AppD policies to respond to ThousandEyes alerts
+#### [`alerts-integration`](alerts-integration/readme.md)
 
-* How to create an AppD Custom Monitor for sending ThousandEyes test data to AppDynamics via Custom Metrics and/or AppDynamics Analytics API. 
+How to setup and handle ThousandEyes Alerts in AppD and how to setup AppD policies to respond to ThousandEyes alerts
 
-* Triggering ThousandEyes Snapshot from AppDynamics - configure AppDynamics to trigger a ThousandEyes snapshot based on a AppDynamics alert policy. 
+####  [`dashboards`](dashboards/readme.md)
+How to embed ThousandEyes dashboard widgets in AppD dashboards and includes a few dashboard examples.
 
-* ThousandEyes Synthetic Test Injection - make AppDynamics aware of ThousandEyes network traffic that is targeting monitored applications. This allows AppD to perform more detailed tracing for traffic originating from ThousandEyes, allows filtering on ThousandEyes data, and correlating with AppD data. This must be configured manually when creating ThousandEyes tests.
+#### [`custom-monitor`](custom-monitor/readme.md) 
+How to create a ThousandEyes Monitor (machine agent extension) that pulls ThousandEyes test data from the ThousandEyes API and  pushes that data to AppDynamics via Custom Metrics and/or the AppDynamics Analytics API. 
+
+#### [`snapshot-integration`](snapshot-integration/readme.md) 
+How to trigger a ThousandEyes Snapshot from AppDynamics using AppD HTTP Request Template.
+
+#### [`http-injection`](http-injection/readme.md)
+How to inject a unique ThousandEyes GUID to HTTP headers of ThousandEyes test. This makes AppDynamics aware of ThousandEyes network traffic that is targeting monitored applications. It allows AppD to perform more detailed tracing for traffic originating from ThousandEyes, allows filtering on ThousandEyes data, and easier correlation with AppD data.
 

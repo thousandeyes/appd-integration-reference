@@ -203,7 +203,7 @@ if __name__ == '__main__':
     username = connectionInfo['te-email']
     authtoken = connectionInfo['te-api-key']
     accountgroup = connectionInfo['te-accountgroup']
-    tests = connectionInfo['te-api-key']
+    tests = connectionInfo['te-tests']
     
     testdata = []
     schemaname = "thousandeyes"
@@ -239,6 +239,7 @@ if __name__ == '__main__':
         for metric in metrics :
             if metric in testround and testround[metric] != "":
                 print ("name=Custom Metrics|{0}|{1}|{2}, value={3}".format(testround['app'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
+                print ("name=Server|Component|{0}|{1}|{2}, value={3}".format(testround['tier'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
                 
         post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
             connectionInfo['analytics-api'],

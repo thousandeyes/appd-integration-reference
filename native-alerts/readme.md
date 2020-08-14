@@ -12,6 +12,5 @@ Once the notification is setup, the user can associate the notification with any
 
 [image]
 
-
-
+In addition, the `thousandeyes-alert-template.json`, shows example of setting up an alert policy for ThousandEyes alert in AppD.
 

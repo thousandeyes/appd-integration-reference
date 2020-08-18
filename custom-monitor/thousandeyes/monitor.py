@@ -219,7 +219,7 @@ if __name__ == '__main__':
             os.system('curl -s -X POST "' + connectionInfo['analytics-api'] + '/events/schema/' + schemaname + '" \
             -H"X-Events-API-AccountName:' + connectionInfo['account-id'] + '" \
             -H"X-Events-API-Key:' + connectionInfo['api-key'] + '" -H"Content-type: application/vnd.appd.events+json;v=2" \
-            -d \'{"schema" : ' + json.dumps(schema) + '} \' &>/dev/null')
+            -d \'{"schema" : ' + json.dumps(schema) + '} \' >/dev/null 2>&1')
         except :
             pass
             #print("Failed to create Analytics schema.", file=sys.stderr)
@@ -233,10 +233,10 @@ if __name__ == '__main__':
     for testround in testdata :
         for metric in metrics :
             if metric in testround and testround[metric] != "":
-                if isinstance(testround[metric], float): testround[metric] = int(testround[metric]) #(testround[metric].split("."))[0]
-                print ("name=Server|Component|{0}|{1}|{2}, value={3}".format(testround['tier'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
+                if isinstance(testround[metric], float): testround[metric] = int(testround[metric])
+                print ("name=Server|Component:{0}|{1}|{2}, value={3}".format(testround['tier'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
         try:
-            post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\'".format(
+            post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\' >/dev/null 2>&1".format(
                 connectionInfo['analytics-api'],
                 schemaname, 
                 connectionInfo['account-id'],

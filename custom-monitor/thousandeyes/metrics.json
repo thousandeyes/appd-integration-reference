@@ -1,20 +1,20 @@
 { 
-    "connectTime": "Connect Time",
-    "receiveTime": "Receive Time",
-    "responseTime": "Response Time",
-    "totalSize": "Total Size", 
-    "domLoadTime": "DOM Load",
     "pageLoadTime": "Page Load",
+    "domLoadTime": "DOM Load",
     "dnsTime": "DNS Time",
-    "numRedirects": "Redirectes",
-    "responseCode": "Response Code",
-    "totalTime": "Total Time",
+    "responseTime": "Response Time",
+    "connectTime": "Connect Time",
     "waitTime": "Wait Time",
+    "receiveTime": "Receive Time",
+    "totalTime": "Total Time",
+    "totalSize": "Total Size", 
+    "responseCode": "Response Code",
+    "numRedirects": "Redirectes",
     "wireSize": "Wire Size",
     "avgLatency": "Avg Latency",
-    "loss": "Loss",
     "maxLatency": "Max Latency",
-    "jitter": "Jitter",
-    "minLatency": "Min Latency"
+    "minLatency": "Min Latency",
+    "loss": "Loss",
+    "jitter": "Jitter"
 } 
     

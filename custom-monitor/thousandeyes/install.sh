@@ -14,4 +14,5 @@ apt-get install -y curl --no-install-recommends && \
 apt-get install -y python3 --no-install-recommends && \
 apt-get install -y python3-pip --no-install-recommends && \
 apt-get clean && rm -rf /var/lib/apt/lists/* && \
-pip3 install requests
+pip3 install requests && \
+pip3 install unidecode

@@ -2,21 +2,39 @@
 #
 # teappd-monitor.py - a Python script for querying ThousandEyes test metrics, transforming metrics JSON payload, and pushing to AppD.
 # 
+# References:
+# 
+# https://docs.appdynamics.com/display/PRO45/Analytics+Events+API
 
 import os, time, sys, base64, json,requests
 from datetime import datetime
+from unidecode import unidecode
 
 te_apiURL = 'https://api.thousandeyes.com'
 te_apiVersion = 'v6'
 te_fullApiURL = te_apiURL + '/' + te_apiVersion + '/'
 
-# Python Wrapper for ThousandEyes API
+LOGFILE = "monitor.log" # or /dev/null
+ENABLE_LOGGING = False
+DEFAULT_METRIC_TEMPLATE = "name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}"
+DEFAULT_SCHEMA_NAME = "thousandeyes"
+ANALYTICS_ENABLED = True
+
+CONFIG_FILE = "config.json"
+SCHEMA_FILE = "schema.json"
+METRICS_FILE= "metrics.json"
+
+# For analysis purposes - counts the number of metrics reported by ThousandEyes API query per agent per test round 
+AGENT_METRIC_COUNT_PER_TESTROUND = {}
+
+
+# Wrapper class for ThousandEyes API
 class TeApi:
-    def __init__(self, username, authToken, accountName, params={}):
+    def __init__(self, username, authToken, accountName=None, params={}):
         self.te_user=username
         self.te_authToken=authToken
         self.te_params=params
-        self.te_params.update({'aid' : self.getAccountId(accountName)})
+        if accountName : self.te_params.update({'aid' : self.getAccountId(accountName)})
 
     def getRequestHeaders(self):
         authorization = None
@@ -28,10 +46,14 @@ class TeApi:
         api_url = te_fullApiURL + apiPath
         request_headers = self.getRequestHeaders()
         params = self.te_params
-
-        #print ("API: " + api_url)
         api_response = requests.get(api_url, headers=request_headers) if params is None else requests.get(api_url, headers=request_headers, params=params)
-        #print (api_response)
+        return api_response.json()
+
+    def getFullUrl (self, fullUrl) :
+        api_url = fullUrl
+        request_headers = self.getRequestHeaders()
+        params = self.te_params
+        api_response = requests.get(api_url, headers=request_headers) if params is None else requests.get(api_url, headers=request_headers, params=params)
         return api_response.json()
 
     def getAccounts (self):
@@ -69,8 +91,7 @@ class TeApi:
         return self.get('net/path-vis/' + str(int(testId)) + "/" + str(int(agentId)) + "/" + str(int(roundId)))
 
 
-# 
-# Extract App name from test metadata OR test name
+# Extract app, tier, and node from test metadata OR test name
 #
 # metadata json schema:
 # { "appd_application":"<appd application name>", "appd_tier":"<appd application tier>", "appd_node":"<appd tier node>" }
@@ -78,13 +99,6 @@ class TeApi:
 # OR
 #
 # Convention: testname = <application>-<tier>
-# Test Name example: adcapital-frontend
-# 
-# The Machine Agent has to be associated with the target app for the metrics. If you attempt to publish metrics to a tier that is not associated with the Machine Agent, the metrics are not reported.
-#
-# name="Server|Component:<tier-name>|JMX|Pool|First|pool usage",value=10
-# name="Server|Component:frontend|JMX|Pool|First|pool usage",value=10
-#
 def extractTestMetadata(testDetails):
     try:
         metadata=json.loads(testDetails['description'])
@@ -97,13 +111,77 @@ def extractTestMetadata(testDetails):
 
     return appinfo
 
-# Helper function for updating the aggregated JSON metrics data
+# Helper function for updating dict; checks for key and also supports updating lists by extending
 def update_dict (dictionary, key, data):
     if key in dictionary : 
         if type(dictionary[key]) is list : dictionary[key].extend(data)
         else : dictionary[key].update(data)
     else :
         dictionary[key] = data
+
+# Helper function for updating the aggregated data
+# agentTestData == (eg.) testdata['web']['pageLoad']
+def update_aggregated_metrics (aggdata, agentTestData, testDetails, appinfo):
+    for agentdata in agentTestData :
+        key = testDetails['testName'] + "-" + agentdata['agentName'] + "-" + str(agentdata['roundId'])
+
+        # Reformat 'date' to ISO
+        agentdata['date'] = datetime.strptime (agentdata['date'], '%Y-%m-%d %H:%M:%S').isoformat()
+        update_dict(aggdata, key, {'roundId':''}) 
+        update_dict(aggdata, key, {'testName':testDetails['testName']})
+        update_dict(aggdata, key, {'agentName':''})
+        update_dict(aggdata, key, {'date':''}) 
+        update_dict(aggdata, key, {'app':appinfo['app']})
+        update_dict(aggdata, key, {'tier':appinfo['tier']})
+        update_dict(aggdata, key, {'node':appinfo['node']})
+        if 'url' in testDetails: update_dict(aggdata, key, {'target':testDetails['url']})
+        if 'server' in testDetails: update_dict(aggdata, key, {'target':testDetails['server']})
+        update_dict(aggdata, key, agentdata)
+
+
+def print_custom_metrics (testround, metrics, metric_template):
+    for metric in metrics :
+        if metric in testround and testround[metric] != "":
+            if isinstance(testround[metric], float): testround[metric] = int(testround[metric])
+            
+            # app, tier, agent, metricname, metricvalue - match template
+            app = testround['app']
+            tier = testround['tier']
+            agent = unidecode(testround['agentName'].replace(',', ' '))
+            metricname = metrics[metric]
+            metricvalue = testround[metric]
+            metric_count_key=str(testround['roundId'])+"-"+agent
+            AGENT_METRIC_COUNT_PER_TESTROUND[metric_count_key]=AGENT_METRIC_COUNT_PER_TESTROUND[metric_count_key]+1 if metric_count_key in AGENT_METRIC_COUNT_PER_TESTROUND else 1
+                        
+            metric=eval('f\''+ metric_template +'\'')
+            print (metric)
+            if ENABLE_LOGGING: os.system("echo \"{0}-{1}\" >> {2}".format(testround['roundId'], metric, LOGFILE))
+
+
+def post_analytics_schema(schemaname, schema, connectionInfo) :
+    if connectionInfo['account-id'] and connectionInfo['api-key'] :
+        try :
+            post = 'curl -s -X POST "' + connectionInfo['analytics-api'] + '/events/schema/' + schemaname + '" \
+            -H"X-Events-API-AccountName:' + connectionInfo['account-id'] + '" \
+            -H"X-Events-API-Key:' + connectionInfo['api-key'] + '" -H"Content-type: application/vnd.appd.events+json;v=2" \
+            -d \'{"schema" : ' + json.dumps(schema) + '} \' >' + LOGFILE + ' 2>' + LOGFILE
+            os.system(post)
+        except :
+            pass
+
+def post_analytics_metric(testround, schemaname, connectionInfo) :
+    try:
+        post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\' > {5} 2>{5}".format(
+            connectionInfo['analytics-api'],
+            schemaname, 
+            connectionInfo['account-id'],
+            connectionInfo['api-key'],
+            json.dumps(testround),
+            LOGFILE)
+        os.system (post)
+    except Exception as e:
+        # TODO: Print error to separate log file. Stderr will corrupt Custom Metrics
+        pass
 
 # Query agent details, including agent label. In addition, if label name is the form of a JSON element ("<tag>: <value>") 
 # then convert the label to a <key>:<value> tag as well. Passed agenddata object is updated with agent details and label/tag info.
@@ -113,139 +191,93 @@ def query_agent_details (teApi, agentdata):
     for group in (group for group in agentdata['groups'] if group['groupId'] > 0):
         agentdata['tags'].update({ group['name'].split(': ')[0] : group['name'].split(': ')[1] }) if ':' in group['name']  else agentdata['tags'].update({ group['name'] : group['name'] })
 
-def query_latest_data(username, authtoken, accountname, testname):
+
+def query_latest_data (username, authtoken, accountname, testname, window_seconds = None):
     try :
         aggdata = {}
-        teApi = TeApi(username, authtoken, accountname)
+        params={'window':window_seconds} if window_seconds else {}
+        teApi = TeApi(username, authtoken, accountname, params)
         tests = teApi.getTests()['test']
         test = next((t for t in tests if t['testName'] == testname), None)
         testDetails = teApi.getTestDetails (str(test['testId']))['test'][0]
-        # print (json.dumps(testDetails['agents']))
-        # Aggregate Test Labels and Tags. If label name is the form of a JSON element ("<tag>: <value>") then aggregate into "tags"
-        # testDetails['tags'] = {}
-        # testDetails['groups'] = {}
-        # for group in (group for group in testDetails['groups'] if group['groupId'] > 0):
-        #     testDetails['tags'].update({ group['name'].split(': ')[0] : group['name'].split(': ')[1] }) if ':' in group['name']  else testDetails['tags'].update({ group['name'] : group['name'] })
-        
+
         appinfo = extractTestMetadata(testDetails)
 
         for agentdata in testDetails['agents']:
+            testdata = teApi.getTestPageloadData(test['testId'])
+            if testdata :
+                update_aggregated_metrics (aggdata, testdata['web']['pageLoad'], testDetails, appinfo)
+                try:
+                    while testdata['pages']['next']:
+                        testdata = TeApi(username, authtoken).getFullUrl(testdata['pages']['next'])
+                        if testdata : update_aggregated_metrics (aggdata, testdata['web']['pageLoad'], testDetails, appinfo)
+                except:
+                    pass
 
-            # TODO: Iterate over json schema to force conformity
+            httpdata = teApi.getTestHttpData(test['testId'])
+            if httpdata :
+                update_aggregated_metrics (aggdata, httpdata['web']['httpServer'], testDetails, appinfo)
+                try:
+                    while httpdata['pages']['next']:
+                        httpdata = TeApi(username, authtoken).getFullUrl(httpdata['pages']['next'])
+                        if httpdata : update_aggregated_metrics (aggdata, httpdata['web']['httpServer'], testDetails, appinfo)
+                except:
+                    pass
 
-            key = testname + " - " + agentdata['agentName']
+            networkdata = teApi.getTestNetData(test['testId'])
+            if networkdata:
+                update_aggregated_metrics (aggdata, networkdata['net']['metrics'], testDetails, appinfo)
+                try:
+                    while networkdata['pages']['next']:
+                        networkdata = TeApi(username, authtoken).getFullUrl(networkdata['pages']['next'])
+                        if networkdata : update_aggregated_metrics (aggdata, networkdata['net']['metrics'], testDetails, appinfo)
+                except:
+                    pass
 
-            # Uncomment this to get full agent details, including tags/labels
-            #query_agent_details (teApi, agentdata)
-
-            # update_dict(agentdata, 'groups', testDetails['groups'])
-            # update_dict(agentdata, 'tags', testDetails['tags'])
-
-            update_dict(aggdata, key, {'testName':testname})
-            update_dict(aggdata, key, {'app':appinfo['app']})
-            update_dict(aggdata, key, {'tier':appinfo['tier']})
-            update_dict(aggdata, key, {'node':appinfo['node']})
-
-            update_dict(aggdata, key, {'agentName':agentdata['agentName']})
-
-            update_dict(aggdata, key, {'date':''}) # force date to be third element in object.
-
-            # Use 'target' instead of 'url' and 'server', 'serverIp'
-            if 'url' in test: update_dict(aggdata, key, {'target':testDetails['url']})
-            if 'server' in test: update_dict(aggdata, key, {'target':testDetails['server']})
-            if 'serverIp' in test: update_dict(aggdata, key, {'target':testDetails['serverIp']})
-
-            # ensure these metrics are always present in the JSON object:
-
-            update_dict(aggdata, key, {'connectTime':''}) 
-            update_dict(aggdata, key, {'errorDetails':''})
-            update_dict(aggdata, key, {'receiveTime':''}) 
-            update_dict(aggdata, key, {'responseTime':''})
-
-            if test['type'] == 'page-load' or (test['type'] == 'web-transactions') :
-                testdata = teApi.getTestPageloadData(test['testId'])
-                if testdata :
-                    for agentdata1 in testdata['web']['pageLoad'] :
-                        key = testname + " - " + agentdata1['agentName'] 
-                        update_dict(aggdata, key, agentdata1)
-                        update_dict(aggdata, key, {'target':testdata['web']['test']['url']})
-
-            if (test['type'] == 'page-load') or (test['type'] == 'web-transactions') or (test['type'] == 'http-server') :
-                httpdata = teApi.getTestHttpData(test['testId'])
-                if httpdata :
-                    for agentdata2 in httpdata['web']['httpServer'] :
-                        key = testname + " - " + agentdata2['agentName'] 
-                        update_dict(aggdata, key, agentdata2)
-
-            if (test['type'] == 'page-load') or (test['type'] == 'web-transactions') or (test['type'] == 'http-server') or (test['type'] == 'agent-to-server') :
-                networkdata = teApi.getTestNetData(test['testId'])
-                if networkdata:
-                    for agentdata3 in networkdata['net']['metrics'] :
-                        key = testname + " - " + agentdata3['agentName'] 
-                        # Convert date time to ISO 
-                        agentdata3['date'] = datetime.strptime (agentdata3['date'], '%Y-%m-%d %H:%M:%S').isoformat()
-                        update_dict(aggdata, key, agentdata3)
             else :
                 print (json.dumps({"error": "Test " + testname + " (" + test['type'] + ") is not a Pageload, HTTP, or Network test"}))
     except Exception as e:
         print (json.dumps({"error": "Could not load test {} from account {}. (Exception: {})".format(testname, accountname, e)}))
+        raise e
         
     return aggdata
 
 if __name__ == '__main__':
     connectionInfo = {}
-    with open('config.json') as f:
+    with open(CONFIG_FILE) as f:
         connectionInfo = json.loads(f.read())
 
-    username = connectionInfo['te-email']
-    authtoken = connectionInfo['te-api-key']
-    accountgroup = connectionInfo['te-accountgroup']
-    tests = connectionInfo['te-tests']
-    
-    # Hardcoding schema name to "thousandeyes"
-    schemaname = "thousandeyes"
-    schema=""
+    # TODO: optionally pull configuration settings from environment variables to eliminate extra config file (and startup script substitution)
+    username = connectionInfo['te-email'] #os.environ.get('TE_EMAIL') #
+    authtoken = connectionInfo['te-api-key'] #os.environ.get('TE_API_KEY') #
+    accountgroup = connectionInfo['te-accountgroup'] #os.environ.get('TE_ACCOUNTGROUP') #
+    tests = connectionInfo['te-tests'] #os.environ.get('TE_TESTS') #
+    metric_template = connectionInfo['metric-template'] if 'metric-template' in connectionInfo else DEFAULT_METRIC_TEMPLATE #os.environ.get('TE_METRIC_TEMPLATE') #
+    period_seconds = int(connectionInfo['metric-period']) if 'metric-period' in connectionInfo else 60  #os.environ.get('TE_METRIC_PERIOD') #
+    schemaname = int(connectionInfo['schemaname']) if 'schemaname' in connectionInfo else DEFAULT_SCHEMA_NAME #os.environ.get('TE_SCHEMA_NAME') #
 
-    # https://docs.appdynamics.com/display/PRO45/Analytics+Events+API
-    with open('schema.json') as f_schema:
+    with open(SCHEMA_FILE) as f_schema:
         schema = json.loads(f_schema.read())
 
     metrics={}
-    with open('metrics.json') as f_metrics:
+    with open(METRICS_FILE) as f_metrics:
         metrics = json.loads(f_metrics.read())
 
-    if connectionInfo['account-id'] and connectionInfo['api-key'] :
-        try :
-            os.system('curl -s -X POST "' + connectionInfo['analytics-api'] + '/events/schema/' + schemaname + '" \
-            -H"X-Events-API-AccountName:' + connectionInfo['account-id'] + '" \
-            -H"X-Events-API-Key:' + connectionInfo['api-key'] + '" -H"Content-type: application/vnd.appd.events+json;v=2" \
-            -d \'{"schema" : ' + json.dumps(schema) + '} \' >/dev/null 2>&1')
-        except :
-            pass
-            #print("Failed to create Analytics schema.", file=sys.stderr)
-
+    if ANALYTICS_ENABLED: post_analytics_schema (schemaname, schema, connectionInfo)
 
     testdata = []
-    for test in tests :
-        # aggregate test data across all tests as an array of flattened test metric objects
-        testdata.extend(list((query_latest_data (username, authtoken, accountgroup, test)).values()))
+    
+    os.system("rm -f {0}".format(LOGFILE))
+    # Run continuously in `period_seconds` intervals
+    while True:
+        for test in tests :
+            testdata = list((query_latest_data (username, authtoken, accountgroup, test)).values())
+            for testround in testdata :
+                print_custom_metrics (testround, metrics, metric_template)
+                if ANALYTICS_ENABLED: post_analytics_metric (testround, schemaname, connectionInfo)
 
-    for testround in testdata :
-        for metric in metrics :
-            if metric in testround and testround[metric] != "":
-                if isinstance(testround[metric], float): testround[metric] = int(testround[metric])
-                print ("name=Server|Component:{0}|{1}|{2}, value={3}".format(testround['tier'], testround['agentName'].replace(',', ' '), metrics[metric], testround[metric]))
-        try:
-            post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\' >/dev/null 2>&1".format(
-                connectionInfo['analytics-api'],
-                schemaname, 
-                connectionInfo['account-id'],
-                connectionInfo['api-key'],
-                json.dumps(testround))
-
-            # Comment out the following if not using Analytics:
-            os.system (post)
-        except Exception as e:
-            # TODO: Print error to separate log file. Stderr will corrupt Custom Metrics
-            pass     
+        # print(json.dumps(AGENT_METRIC_COUNT_PER_TESTROUND))
+        AGENT_METRIC_COUNT_PER_TESTROUND={}
+        exit(0)
+        # time.sleep(period_seconds)
 

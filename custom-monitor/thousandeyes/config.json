@@ -5,5 +5,7 @@
 	"te-email":"<ThousandEyes Email>",
 	"te-api-key":"<ThousandEyes API Key>",
 	"te-accountgroup":"<ThousandEyes Account Group>",
-	"te-tests":["<List of ThousandEyes Test Names>"]
+	"te-tests":["<List of ThousandEyes Test Names>"],
+	"metric-template":"<Metric Template>",
+	"metric-period":"<Metric Period>"
 }

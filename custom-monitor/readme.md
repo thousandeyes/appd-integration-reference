@@ -29,9 +29,9 @@ wget https://github.com/thousandeyes/appd-integration-reference/archive/master.t
     rm -rf appd-integration-reference-master && rm master.tar.gz
 ```
 
-### Install Dependencies
+### Install
 Run `install.sh` in the `thousandeyes` folder to configure Python and some other dependencies.  
-```bash
+```
 ./${MACHINE_AGENT_HOME}/monitors/thousandeyes/install.sh
 ```
 
@@ -100,7 +100,8 @@ The metric template supports the variables `{app}`, `{tier}`, `{node}`. These va
 
 Where `appd_application` sets `{app}`, `appd_tier` sets `{tier}`, and `appd_node` sets `{node}`. The **metric template** also supports `{metricname}` and `{metricvalue}` which are set the the name and value of each metric.
 
-* `TE_SCHEMA_NAME`/`schema-name` - this is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
+
+* `TE_SCHEMA_NAME`/`schema-name` is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
 
 #### metrics.json
 The **metrics.json** defines the list of ThousandEyes metrics to monitor and their name is they will appear in AppDynamics. This file does not need to be changed unless you want to add or remove ThousandEyes Metrics. The default metrics are:
@@ -160,7 +161,7 @@ These will appear under the Application's Metrics under each Tier that we're gen
 
 In some cases you may want to use a single machine agent monitor to stream data for *multiple applicaitons*. In this scenario, you can consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. This will not be the same app as the apps you're monitor. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. In this case you will most likely want to use the following metric template:
 
-* `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue}` 
+* `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue} `
 
 Note the addition of the `{app}` variable, allowing multiple applications (as specified in the ThousandEyes test metadata) to report data under the same machine agent / dummy app.  
 

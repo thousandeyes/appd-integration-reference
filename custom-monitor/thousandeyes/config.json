@@ -1,11 +1,11 @@
 {
-	"analytics-api":"https://analytics.api.appdynamics.com",
-	"account-id":"<AppDynamics Global Account ID>", 
-	"api-key":"<AppDynamics API Key>",
-	"te-email":"<ThousandEyes Email>",
-	"te-api-key":"<ThousandEyes API Key>",
-	"te-accountgroup":"<ThousandEyes Account Group>",
-	"te-tests":["<List of ThousandEyes Test Names>"],
-	"metric-template":"<Metric Template>",
-	"metric-period":"<Metric Period>"
+	"account-id":"", 
+	"api-key":"",
+	"te-email":"",
+	"te-api-key":"",
+	"te-accountgroup":"",
+	"te-tests":[""],
+	"metric-template":"name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}",
+	"metric-period":"60",
+	"schema-name":"thousandeyes"
 }

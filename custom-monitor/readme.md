@@ -9,12 +9,13 @@ Before the extension can be used the following prequistates must be in place:
 
 * This extension uses a Standalone Machine Agent. For more details on downloading these products, please visit https://docs.appdynamics.com/display/PRO45/Extensions+and+Custom+Metrics. The extension needs to be able to connect to ThousandEyes and AppD in order to collect and send metrics. 
  
-**Note** - The ThousandEyes Monitor Machine Agent does NOT need to run in the same environemnt as your application.
-**Note** - When using Custom Metrics, you must deploy a separate machine agent for each Application you want to monitor. Using Analytics you can monitor multiple applications with a single Machine Agent.
+The ThousandEyes Monitor Machine Agent does not need to run in the same environemnt as your application. When using Custom Metrics, you can only associate a machine agient (the ThousandEyes Monitor) with one applicaiton. Therefore, if you want to associate metrics with an application you're monitoring, you must deploy one ThousandEyes Machine Agent extension for each applicaiton. Alternatively, using a "dummy app" allows monitoring multiple applications with one machine agent.  
 
-## Manual Setup
+Analytics can monitor multiple applications with a single Machine Agent.
 
-### Get the ThousandEyes Monitor Code
+## Setup and Usage
+
+### Get the Code
 
 If you're installing on an existing Machine Agent you can clone the GitHub repo or pull the zip archive using `wget`. Make sure `MACHINE_AGENT_HOME` is set.
 
@@ -29,13 +30,13 @@ wget https://github.com/thousandeyes/appd-integration-reference/archive/master.t
 ```
 
 ### Install Dependencies
-Run `install.sh` in the `thousandeyes` folder to configure Python and other dependencies.  
+Run `install.sh` in the `thousandeyes` folder to configure Python and some other dependencies.  
 ```bash
 ./${MACHINE_AGENT_HOME}/monitors/thousandeyes/install.sh
 ```
 
-### Set Configuration Info
-Next you'll need to configure your connection info, metrics format, and what ThousandEyes tests you want to pull data from. You can edit the `config.json` file or use Environment Variables. **NOTE** - environment variables take precedence over the `config.json` file. This means `config.json` can be optional.
+### Configure
+You'll need to configure your connection info, metrics format, and what ThousandEyes tests you want to pull data from. You can edit the `config.json` file or use Environment Variables. Environment variables take precedence over the `config.json` file (making `config.json` optional).
 
 #### config.json
 
@@ -83,11 +84,11 @@ TE_TESTS=["mytest1", "mytest2"]
 ```
 
 * `TE_METRIC_TEMPLATE`/`metric-template` is the format of the Custom Metric. Some examples:
-    - 'name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}'
-    - 'name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}'
-    - "name=Custom Metrics|$APPDYNAMICS_AGENT_TIER_NAME|{agent}|{metricname},value={metricvalue}"
+    - `name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}`
+    - `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
+    - `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue}`
 
-The metric template supports using the variables `{app}`, `{tier}`, `{node}`. These variables will be set to the metadata values set in the ThousandEyes tests from which metrics are being pulled. The following metadata json can be placed in the `Description` field of a ThousandEyes test for setting the `{app}`, `{tier}`, and `{node}`:
+The metric template supports the variables `{app}`, `{tier}`, `{node}`. These variables are set by metadata you can place in the `Description` field of the ThousandEyes tests. The metadata format is: 
 
 ```json
 { 
@@ -96,7 +97,8 @@ The metric template supports using the variables `{app}`, `{tier}`, `{node}`. Th
     "appd_node":"mynode"
 }
 ```
-The **metric template** also supports `{metricname}` and `{metricvalue}` which will be set the the name and value of a metric as it's emitted.
+
+Where `appd_application` sets `{app}`, `appd_tier` sets `{tier}`, and `appd_node` sets `{node}`. The **metric template** also supports `{metricname}` and `{metricvalue}` which are set the the name and value of each metric.
 
 * `TE_SCHEMA_NAME`/`schema-name` - this is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
 

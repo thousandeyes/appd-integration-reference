@@ -248,9 +248,6 @@ def query_latest_data (username, authtoken, accountname, testname, window_second
 def get_config_value (configKey, envKey, configInfo, default=None):
     try:
         configValue = os.environ.get(envKey) if os.environ.get(envKey) else configInfo[configKey]
-        # configValue = os.environ.get(envKey) 
-        # if configValue is None or configValue == "": return configInfo[configKey]
-        print ("{0}: {1}".format(envKey, configValues))
         return configValue
     except Exception as e:
         if default: return default

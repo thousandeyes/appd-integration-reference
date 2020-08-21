@@ -31,7 +31,7 @@ wget https://github.com/thousandeyes/appd-integration-reference/archive/master.t
 
 ### Install
 Run `install.sh` in the `thousandeyes` folder to configure Python and some other dependencies.  
-```
+```bash
 ./${MACHINE_AGENT_HOME}/monitors/thousandeyes/install.sh
 ```
 

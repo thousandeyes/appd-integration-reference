@@ -2,6 +2,8 @@
 
 This code provides an example of how to create an AppD Machine Agent Custom Monitor Extension for ThousandEyes. This Extension streams monitoring data from ThousandEyes to AppD. The Custom Monitor runs a Python script that periodically pulls test data from the ThousandEyes API, transforms the data payload, and pushes data into AppD via **Custom Metrics** and/or **Analytics Platform** (via analytics API).
 
+![metrics image](.readme/metrics.png)
+
 ## Prerequisites
 Before the extension can be used the following prequistates must be in place:
 

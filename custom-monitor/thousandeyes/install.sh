@@ -9,7 +9,6 @@ set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get update && \
-apt-get upgrade -y && \
 apt-get install -y curl --no-install-recommends && \
 apt-get install -y python3 --no-install-recommends && \
 apt-get install -y python3-pip --no-install-recommends && \

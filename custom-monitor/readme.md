@@ -139,7 +139,7 @@ Set `APPDYNAMICS_AGENT_TIER_NAME` and `APPDYNAMICS_AGENT_NODE_NAME` to `thousand
 
 Note that Custom Metrics only allow associating a Machine Agent with a **single application** in AppDynamics. When writing metrics to an app you're monitoring in Appd you'll most likely want to use one of the following metric templates:
 
-* name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}
+* name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}
 * name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue} 
 
 These will appear under the Application's Metrics under each Tier that we're generating metrics for.

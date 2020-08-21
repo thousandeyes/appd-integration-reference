@@ -77,14 +77,14 @@ TE_SCHEMA_NAME
 TE_TESTS='["mytest1", "mytest2"]'
 ```
 
-When passing as an environment variable to `docker-compose`, you must omit the outer ' ' (due to yaml parsing). This can feel odd as it's not valid bash. :unamused: 
+When passing as an environment variable to `docker-compose`, you must omit the outer ' ' (due to yaml parsing). This can feel odd as it's not valid bash.
 
 ```bash
 TE_TESTS=["mytest1", "mytest2"]
 ```
 
 * `TE_METRIC_TEMPLATE`/`metric-template` is the format of the Custom Metric. Some examples:
-    - `name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}`
+    - `name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}`
     - `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
     - `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue}`
 

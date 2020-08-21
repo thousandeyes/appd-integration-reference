@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  te-appd-monitor:
+    container_name: te-appd-monitor
+    hostname: te-appd-monitor
+    image: thousandeyes/appd-monitor
+    env_file: ./configuration.env
+    volumes:
+      - /:/hostroot:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+  
+  # netviz-agent:
+  #   container_name: netviz-agent
+  #   hostname: netviz-agent
+  #   build:
+  #     context: .
+  #     dockerfile: netviz.dockerfile
+  #     args:
+  #       NETVIZ_AGENT_ZIP: ./build/netviz-agent/appd-netviz.zip
+  #   image: appdynamics/netviz-agent
+  #   env_file: ./configuration.env
+  #   network_mode: "host"
+  #   restart: unless-stopped
+  #   ports:
+  #       - '3892:3892'
+  #   cap_add:
+  #       - NET_ADMIN
+  #       - NET_RAW

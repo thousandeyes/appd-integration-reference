@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  te-monitor:
+    container_name: te-monitor
+    hostname: te-monitor
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MACHINE_AGENT_ZIP: machineagent-bundle.zip
+        MACHINE_AGENT_SHA256: 48e60a0a8d3452fdf2386049268647dce25c5ba175138138e7b023b9f69fafc6
+    image: thousandeyes/appd-monitor

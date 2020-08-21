@@ -84,7 +84,7 @@ TE_TESTS=["mytest1", "mytest2"]
 ```
 
 * `TE_METRIC_TEMPLATE`/`metric-template` is the format of the Custom Metric. Some examples:
-    - `name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}`
+    - `name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}`
     - `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
     - `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue}`
 

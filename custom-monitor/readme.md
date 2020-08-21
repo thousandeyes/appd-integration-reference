@@ -15,7 +15,7 @@ Analytics can monitor multiple applications with a single Machine Agent.
 
 ## Setup and Usage
 
-### Get the ThousandEyes Monitor Code
+### Get the Code
 
 If you're installing on an existing Machine Agent you can clone the GitHub repo or pull the zip archive using `wget`. Make sure `MACHINE_AGENT_HOME` is set.
 
@@ -29,14 +29,14 @@ wget https://github.com/thousandeyes/appd-integration-reference/archive/master.t
     rm -rf appd-integration-reference-master && rm master.tar.gz
 ```
 
-### Install Dependencies
-Run `install.sh` in the `thousandeyes` folder to configure Python and other dependencies.  
+### Install
+Run `install.sh` in the `thousandeyes` folder to configure Python and some other dependencies.  
 ```
 ./${MACHINE_AGENT_HOME}/monitors/thousandeyes/install.sh
 ```
 
-### Set Configuration Info
-Next you'll need to configure your connection info, metrics format, and what ThousandEyes tests you want to pull data from. You can edit the `config.json` file or use Environment Variables. **NOTE** - environment variables take precedence over the `config.json` file. This means `config.json` can be optional.
+### Configure
+You'll need to configure your connection info, metrics format, and what ThousandEyes tests you want to pull data from. You can edit the `config.json` file or use Environment Variables. Environment variables take precedence over the `config.json` file (making `config.json` optional).
 
 #### config.json
 

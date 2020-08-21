@@ -73,10 +73,11 @@ TE_SCHEMA_NAME
 * `TE_ACCOUNTGROUP`/`te-account group` is the ThousandEyes Account Group name
 * `TE_TESTS`/`te-tests` is an array of tests to pull data from. Multiple tests supported. Note, this is a json array eg `["test1","test2"]`; when set as environment variable must include outer single quotes: `'["test1","test2"]'`
 * `TE_METRIC_TEMPLATE`/`metric-template` is the format of the Custom Metric. Some examples:
-    - 'name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}'
-    - 'name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}'
-    - "name=Custom Metrics|$APPDYNAMICS_AGENT_TIER_NAME|{agent}|{metricname},value={metricvalue}"
-**Note** - the metric template supports using the variables `{app}`, `{tier}`, `{node}`. These variables will be set to the metadata values set in the ThousandEyes tests from which metrics are being pulled. The following metadata json can be placed in the `Description` field of a ThousandEyes test for setting the `{app}`, `{tier}`, and `{node}`:
+    - `name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}`
+    - `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
+    - `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue}`
+
+As you can see, the metric template supports the variables `{app}`, `{tier}`, `{node}`. These variables are set by metadata you can put in the `Description` field of the ThousandEyes tests. The format is: 
 
     ```json
     { 
@@ -85,14 +86,15 @@ TE_SCHEMA_NAME
         "appd_node":"mynode"
     }
     ```
-The **metric template** also supports `{metricname}` and `{metricvalue}` which will be set the the name and value of a metric as it's emitted.
 
-* `TE_SCHEMA_NAME`/`schema-name` - this is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
+Where `appd_application` sets `{app}`, `appd_tier` sets `{tier}`, and `appd_node` sets `{node}`. The **metric template** also supports `{metricname}` and `{metricvalue}` which are set the the name and value of each metric.
+
+* `TE_SCHEMA_NAME`/`schema-name` is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
 
 #### metrics.json
 The **metrics.json** defines the list of ThousandEyes metrics to monitor and their name is they will appear in AppDynamics. This file does not need to be changed unless you want to add or remove ThousandEyes Metrics. The default metrics are:
 
-```
+```json
 { 
     "pageLoadTime": "Page Load",
     "domLoadTime": "DOM Load",
@@ -140,14 +142,14 @@ Set `APPDYNAMICS_AGENT_TIER_NAME` and `APPDYNAMICS_AGENT_NODE_NAME` to `thousand
 
 Note that Custom Metrics only allow associating a Machine Agent with a **single application** in AppDynamics. When writing metrics to an app you're monitoring in Appd you'll most likely want to use one of the following metric templates:
 
-* name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}
-* name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue} 
+* `name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}`
+* `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
 
 These will appear under the Application's Metrics under each Tier that we're generating metrics for.
 
 In some cases you may want to use a single machine agent monitor to stream data for *multiple applicaitons*. In this scenario, you can consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. This will not be the same app as the apps you're monitor. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. In this case you will most likely want to use the following metric template:
 
-* name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue} 
+* `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue} `
 
 Note the addition of the `{app}` variable, allowing multiple applications (as specified in the ThousandEyes test metadata) to report data under the same machine agent / dummy app.  
 

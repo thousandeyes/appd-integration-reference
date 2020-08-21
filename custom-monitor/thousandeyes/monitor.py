@@ -17,7 +17,7 @@ te_fullApiURL = te_apiURL + '/' + te_apiVersion + '/'
 ANALYTICS_API="https://analytics.api.appdynamics.com"
 
 LOGFILE = "monitor.log" # or /dev/null
-ENABLE_LOGGING = False
+ENABLE_LOGGING = True
 DEFAULT_METRIC_TEMPLATE = "name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}"
 DEFAULT_SCHEMA_NAME = "thousandeyes"
 ANALYTICS_ENABLED = True
@@ -143,7 +143,7 @@ def update_aggregated_metrics (aggdata, agentTestData, testDetails, appinfo):
 
 def print_custom_metrics (testround, metrics, metric_template):
     for metric in metrics :
-        if metric in testround and testround[metric] != "":
+        if metric in testround and testround[metric] and testround[metric] != "":
             if isinstance(testround[metric], float): testround[metric] = int(testround[metric])
             
             # app, tier, agent, metricname, metricvalue - match template
@@ -166,14 +166,14 @@ def post_analytics_schema(schemaname, schema, connectionInfo) :
             post = 'curl -s -X POST "' + connectionInfo['analytics-api'] + '/events/schema/' + schemaname + '" \
             -H"X-Events-API-AccountName:' + connectionInfo['account-id'] + '" \
             -H"X-Events-API-Key:' + connectionInfo['api-key'] + '" -H"Content-type: application/vnd.appd.events+json;v=2" \
-            -d \'{"schema" : ' + json.dumps(schema) + '} \' >' + LOGFILE + ' 2>' + LOGFILE
+            -d \'{"schema" : ' + json.dumps(schema) + '} \' >>' + LOGFILE + ' 2>>' + LOGFILE
             os.system(post)
         except :
             pass
 
 def post_analytics_metric(testround, schemaname, connectionInfo) :
     try:
-        post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\' > {5} 2>{5}".format(
+        post = "curl -s -X POST \"{0}/events/publish/{1}\" -H\"X-Events-API-AccountName: {2}\" -H\"X-Events-API-Key: {3}\" -H\"Content-type: application/vnd.appd.events+json;v=2\" -d \'[{4}]\' >> {5} 2>>{5}".format(
             connectionInfo['analytics-api'],
             schemaname, 
             connectionInfo['account-id'],
@@ -248,10 +248,11 @@ def query_latest_data (username, authtoken, accountname, testname, window_second
 def get_config_value (configKey, envKey, configInfo, default=None):
     try:
         configValue = os.environ.get(envKey) if os.environ.get(envKey) else configInfo[configKey]
-        return configValue
+        if configValue is None or configValue == "" : raise Exception("Missing config {0}".format(envKey))
+        return configValue.strip('\"')
     except Exception as e:
         if default: return default
-        print ("Missing required config entry. Must define {0} environment variable or {1} in {2}.".format(envKey, configKey, CONFIG_FILE))
+        print ("Missing required config entry. Must define '{0}' environment variable or '{1}' in {2}.".format(envKey, configKey, CONFIG_FILE))
         raise e
 
 
@@ -294,7 +295,7 @@ if __name__ == '__main__':
 
     testdata = []
     
-    os.system("rm -f {0}".format(LOGFILE))
+    os.system("'' > {0}".format(LOGFILE))
 
     while True:
         for test in tests :

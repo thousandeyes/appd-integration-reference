@@ -133,12 +133,26 @@ APPDYNAMICS_AGENT_TIER_NAME=thousandeyes
 APPDYNAMICS_AGENT_NODE_NAME=thousandeyes
 ```
 
-Set `APPDYNAMICS_AGENT_APPLICATION_NAME` to the Application name of an application in AppDynamics being monitored. Note that when using **Custom Metrics** you can only associate a Machine Agent with a single Application in AppDynamics. In some cases you may consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. 
+Set `APPDYNAMICS_AGENT_APPLICATION_NAME` to the Application name of an application in AppDynamics. 
 
-Set `APPDYNAMICS_AGENT_TIER_NAME` and `APPDYNAMICS_AGENT_NODE_NAME` to `thousandeyes`. This is the default in the Docker configuration, but can be changed if desired.
+Set `APPDYNAMICS_AGENT_TIER_NAME` and `APPDYNAMICS_AGENT_NODE_NAME` to `thousandeyes`. This is the default recommended, but can be changed if desired. The ThousandEyes Monitor will appear under the specified application as a `thousandeyes` Java tier.
+
+Note that Custom Metrics only allow associating a Machine Agent with a **single application** in AppDynamics. When writing metrics to an app you're monitoring in Appd you'll most likely want to use one of the following metric templates:
+
+* name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}
+* name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue} 
+
+These will appear under the Application's Metrics under each Tier that we're generating metrics for.
+
+In some cases you may want to use a single machine agent monitor to stream data for *multiple applicaitons*. In this scenario, you can consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. This will not be the same app as the apps you're monitor. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. In this case you will most likely want to use the following metric template:
+
+* name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue} 
+
+Note the addition of the `{app}` variable, allowing multiple applications (as specified in the ThousandEyes test metadata) to report data under the same machine agent / dummy app.  
+
 
 ### Monitor Config XML 
-The **monitor.xml** does not need to be modified. However the Python code can be configured to run continuously, but will require changing **monitor.xml** and the **monitor.py* files.
+The **monitor.xml** does not need to be modified. The only reason to modify it would be to change the execution to `continuous` mode. This requires updating the Python code to run continuously and should use the `metric-period`/`TE_METRIC_PERIOD` configuration value.
 
 ### Additional Machine Agent Settings
 The following machine agent environment settings may also need to be configured. However, if running on an existing Machine Agent these should already be set:

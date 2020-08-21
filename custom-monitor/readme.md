@@ -18,7 +18,7 @@ Before the extension can be used the following prequistates must be in place:
 
 If you're installing on an existing Machine Agent you can clone the GitHub repo or pull the zip archive using `wget`. Make sure `MACHINE_AGENT_HOME` is set.
 
-```
+```bash
 apt-get update
 apt-get install wget
 wget https://github.com/thousandeyes/appd-integration-reference/archive/master.tar.gz && \
@@ -30,7 +30,7 @@ wget https://github.com/thousandeyes/appd-integration-reference/archive/master.t
 
 ### Install Dependencies
 Run `install.sh` in the `thousandeyes` folder to configure Python and other dependencies.  
-```
+```bash
 ./${MACHINE_AGENT_HOME}/monitors/thousandeyes/install.sh
 ```
 
@@ -39,7 +39,7 @@ Next you'll need to configure your connection info, metrics format, and what Tho
 
 #### config.json
 
-```
+```json
 {
     "account-id":"", 
     "api-key":"",
@@ -54,7 +54,7 @@ Next you'll need to configure your connection info, metrics format, and what Tho
 
 #### Environment Variables
 
-```
+```bash
 APPD_GLOBAL_ACCOUNT
 APPD_API_KEY
 TE_EMAIL
@@ -70,20 +70,32 @@ TE_SCHEMA_NAME
 * `TE_EMAIL`/`te-email` is your ThousandEyes Email
 * `TE_API_KEY`/`te-api-key` is your ThousandEyes API key
 * `TE_ACCOUNTGROUP`/`te-account group` is the ThousandEyes Account Group name
-* `TE_TESTS`/`te-tests` is an array of tests to pull data from. Multiple tests supported. Note, this is a json array eg `["test1","test2"]`; when set as environment variable must include outer single quotes: `'["test1","test2"]'`
+* `TE_TESTS`/`te-tests` is an array of tests to pull data from. Multiple tests supported. Note, this is a json array eg `["test1","test2"]`; When set as an environment variable you must include outer single quotes: `'["test1","test2"]'`. 
+
+```bash
+TE_TESTS='["mytest1", "mytest2"]'
+```
+
+When passing as an environment variable to `docker-compose`, you must omit the outer ' ' (due to yaml parsing). This can feel odd as it's not valid bash. :unamused: 
+
+```bash
+TE_TESTS=["mytest1", "mytest2"]
+```
+
 * `TE_METRIC_TEMPLATE`/`metric-template` is the format of the Custom Metric. Some examples:
     - 'name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}'
     - 'name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}'
     - "name=Custom Metrics|$APPDYNAMICS_AGENT_TIER_NAME|{agent}|{metricname},value={metricvalue}"
-**Note** - the metric template supports using the variables `{app}`, `{tier}`, `{node}`. These variables will be set to the metadata values set in the ThousandEyes tests from which metrics are being pulled. The following metadata json can be placed in the `Description` field of a ThousandEyes test for setting the `{app}`, `{tier}`, and `{node}`:
 
-    ```json
-    { 
-        "appd_application":"myapp", 
-        "appd_tier":"myapptier", 
-        "appd_node":"mynode"
-    }
-    ```
+The metric template supports using the variables `{app}`, `{tier}`, `{node}`. These variables will be set to the metadata values set in the ThousandEyes tests from which metrics are being pulled. The following metadata json can be placed in the `Description` field of a ThousandEyes test for setting the `{app}`, `{tier}`, and `{node}`:
+
+```json
+{ 
+    "appd_application":"myapp", 
+    "appd_tier":"myapptier", 
+    "appd_node":"mynode"
+}
+```
 The **metric template** also supports `{metricname}` and `{metricvalue}` which will be set the the name and value of a metric as it's emitted.
 
 * `TE_SCHEMA_NAME`/`schema-name` - this is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
@@ -91,7 +103,7 @@ The **metric template** also supports `{metricname}` and `{metricvalue}` which w
 #### metrics.json
 The **metrics.json** defines the list of ThousandEyes metrics to monitor and their name is they will appear in AppDynamics. This file does not need to be changed unless you want to add or remove ThousandEyes Metrics. The default metrics are:
 
-```
+```json
 { 
     "pageLoadTime": "Page Load",
     "domLoadTime": "DOM Load",
@@ -127,8 +139,8 @@ The `monitor.py` file can be enhanced to pull additional metrics from ThousandEy
 ### Associating your Machine Agent with an Application
 To associate the ThousandEyes Monitor machine agent with an Application in AppDynamics you need to set the following environment variables:
 
-```
-APPDYNAMICS_AGENT_APPLICATION_NAME=<application name>
+```bash
+APPDYNAMICS_AGENT_APPLICATION_NAME=yourapp
 APPDYNAMICS_AGENT_TIER_NAME=thousandeyes
 APPDYNAMICS_AGENT_NODE_NAME=thousandeyes
 ```
@@ -139,14 +151,14 @@ Set `APPDYNAMICS_AGENT_TIER_NAME` and `APPDYNAMICS_AGENT_NODE_NAME` to `thousand
 
 Note that Custom Metrics only allow associating a Machine Agent with a **single application** in AppDynamics. When writing metrics to an app you're monitoring in Appd you'll most likely want to use one of the following metric templates:
 
-* name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}
-* name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue} 
+* `name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}`
+* `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
 
 These will appear under the Application's Metrics under each Tier that we're generating metrics for.
 
 In some cases you may want to use a single machine agent monitor to stream data for *multiple applicaitons*. In this scenario, you can consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. This will not be the same app as the apps you're monitor. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. In this case you will most likely want to use the following metric template:
 
-* name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue} 
+* `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue}` 
 
 Note the addition of the `{app}` variable, allowing multiple applications (as specified in the ThousandEyes test metadata) to report data under the same machine agent / dummy app.  
 
@@ -179,5 +191,21 @@ You should see logs of the monitor being run periodically:
 [Agent-Monitor-Scheduler-4] 20 Aug 2020 05:01:41,639  INFO MonitorStreamConsumer - Stopping monitored process
 ```
 
+### docker-compose and quoted environment variables
 
+When the following bash conforming environment variable file
+
+```bash
+TE_ACCOUNTGROUP="Integration AppD"
+TE_TESTS='["samplenodejs2"]'
+TE_SCHEMA_NAME=thousandeyes
+```
+
+is passed as an environment to `docker-compose`, it is parsed by `yaml` which, unlike `bash`, aims preserve all quotes, including outer quotes. The resulting environment variables (in the Docker container) are thus rendered with unexpected extra quotes:
+
+```bash
+TE_ACCOUNTGROUP='"Integration AppD"'
+TE_TESTS='["samplenodejs2"]'
+TE_SCHEMA_NAME=thousandeyes
+```
 

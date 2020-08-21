@@ -14,6 +14,8 @@ te_apiURL = 'https://api.thousandeyes.com'
 te_apiVersion = 'v6'
 te_fullApiURL = te_apiURL + '/' + te_apiVersion + '/'
 
+ANALYTICS_API="https://analytics.api.appdynamics.com"
+
 LOGFILE = "monitor.log" # or /dev/null
 ENABLE_LOGGING = False
 DEFAULT_METRIC_TEMPLATE = "name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}"
@@ -24,9 +26,9 @@ CONFIG_FILE = "config.json"
 SCHEMA_FILE = "schema.json"
 METRICS_FILE= "metrics.json"
 
+
 # For analysis purposes - counts the number of metrics reported by ThousandEyes API query per agent per test round 
 AGENT_METRIC_COUNT_PER_TESTROUND = {}
-
 
 # Wrapper class for ThousandEyes API
 class TeApi:
@@ -242,39 +244,67 @@ def query_latest_data (username, authtoken, accountname, testname, window_second
         
     return aggdata
 
+# Environment variable takes precendence over config file
+def get_config_value (configKey, envKey, configInfo, default=None):
+    try:
+        configValue = os.environ.get(envKey) if os.environ.get(envKey) else configInfo[configKey]
+        # configValue = os.environ.get(envKey) 
+        # if configValue is None or configValue == "": return configInfo[configKey]
+        print ("{0}: {1}".format(envKey, configValues))
+        return configValue
+    except Exception as e:
+        if default: return default
+        print ("Missing required config entry. Must define {0} environment variable or {1} in {2}.".format(envKey, configKey, CONFIG_FILE))
+        raise e
+
+
+def load_metrics (metricsFile):
+    try :
+        with open(metricsFile) as f_metrics:
+            return json.loads(f_metrics.read())
+    except : 
+        print ("Failed to load Custom Metrics definition file {0}.", metricsFile)
+        raise e
+
 if __name__ == '__main__':
     connectionInfo = {}
     with open(CONFIG_FILE) as f:
-        connectionInfo = json.loads(f.read())
+        configInfo = json.loads(f.read())
 
-    # TODO: optionally pull configuration settings from environment variables to eliminate extra config file (and startup script substitution)
-    username = connectionInfo['te-email'] #os.environ.get('TE_EMAIL') #
-    authtoken = connectionInfo['te-api-key'] #os.environ.get('TE_API_KEY') #
-    accountgroup = connectionInfo['te-accountgroup'] #os.environ.get('TE_ACCOUNTGROUP') #
-    tests = connectionInfo['te-tests'] #os.environ.get('TE_TESTS') #
-    metric_template = connectionInfo['metric-template'] if 'metric-template' in connectionInfo else DEFAULT_METRIC_TEMPLATE #os.environ.get('TE_METRIC_TEMPLATE') #
-    period_seconds = int(connectionInfo['metric-period']) if 'metric-period' in connectionInfo else 60  #os.environ.get('TE_METRIC_PERIOD') #
-    schemaname = int(connectionInfo['schemaname']) if 'schemaname' in connectionInfo else DEFAULT_SCHEMA_NAME #os.environ.get('TE_SCHEMA_NAME') #
+    username = get_config_value ('te-email', 'TE_EMAIL', configInfo) 
+    authtoken = get_config_value ('te-api-key', 'TE_API_KEY', configInfo) 
+    accountgroup = get_config_value ('te-accountgroup', 'TE_ACCOUNTGROUP', configInfo) 
+    tests = json.loads(os.environ.get("TE_TESTS")) if os.environ.get("TE_TESTS") else configInfo['te-tests']
+    metric_template = get_config_value ('metric-template', 'TE_METRIC_TEMPLATE', configInfo, DEFAULT_METRIC_TEMPLATE) 
+    period_seconds = int(get_config_value ('metric-period', 'TE_METRIC_PERIOD', configInfo, 60)) 
+    schemaname = get_config_value ('schema-name', 'TE_SCHEMA_NAME', configInfo, DEFAULT_SCHEMA_NAME) 
 
-    with open(SCHEMA_FILE) as f_schema:
-        schema = json.loads(f_schema.read())
+    analyticsInfo = {
+        'analytics-api':ANALYTICS_API,
+        'account-id':get_config_value ('account-id', 'APPD_GLOBAL_ACCOUNT', configInfo, "x"),
+        'api-key':get_config_value ('api-key', 'APPD_API_KEY', configInfo, "x")
+    }
 
-    metrics={}
-    with open(METRICS_FILE) as f_metrics:
-        metrics = json.loads(f_metrics.read())
+    if analyticsInfo['account-id'] == "x" or analyticsInfo['api-key'] == "x" : ANALYTICS_ENABLED = False 
 
-    if ANALYTICS_ENABLED: post_analytics_schema (schemaname, schema, connectionInfo)
+    if ANALYTICS_ENABLED : 
+        with open (SCHEMA_FILE) as f_schema :
+            schema = json.loads(f_schema.read())
+
+    metrics = load_metrics(METRICS_FILE)
+
+    if ANALYTICS_ENABLED: post_analytics_schema (schemaname, schema, analyticsInfo)
 
     testdata = []
     
     os.system("rm -f {0}".format(LOGFILE))
-    # Run continuously in `period_seconds` intervals
+
     while True:
         for test in tests :
             testdata = list((query_latest_data (username, authtoken, accountgroup, test)).values())
             for testround in testdata :
                 print_custom_metrics (testround, metrics, metric_template)
-                if ANALYTICS_ENABLED: post_analytics_metric (testround, schemaname, connectionInfo)
+                if ANALYTICS_ENABLED: post_analytics_metric (testround, schemaname, analyticsInfo)
 
         # print(json.dumps(AGENT_METRIC_COUNT_PER_TESTROUND))
         AGENT_METRIC_COUNT_PER_TESTROUND={}

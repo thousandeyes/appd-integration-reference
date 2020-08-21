@@ -16,72 +16,140 @@ Before the extension can be used the following prequistates must be in place:
 
 ### Get the ThousandEyes Monitor Code
 
-If you're installing on an existing Machine Agent, you can pull the full example repo from GitHub. (You may have to set the `MACHINE_AGENT_HOME` variable)
+If you're installing on an existing Machine Agent you can clone the GitHub repo or pull the zip archive using `wget`. Make sure `MACHINE_AGENT_HOME` is set.
 
 ```
-# Optional if not already set
-MACHINE_AGENT_HOME=/opt/appdynamics/machine-agent/
-
-apt-get install -y wget
+apt-get update
+apt-get install wget
 wget https://github.com/thousandeyes/appd-integration-reference/archive/master.tar.gz && \
     tar -xzvf master.tar.gz && \
-    mv appd-integration-reference-master/custom-monitor/thousandeyes ${MACHINE_AGENT_HOME}/monitors && \
-    rm -rf appd-integration-reference-master
+    sudo mkdir -p ${MACHINE_AGENT_HOME}/monitors && \
+    sudo mv appd-integration-reference-master/custom-monitor/thousandeyes ${MACHINE_AGENT_HOME}/monitors && \
+    rm -rf appd-integration-reference-master && rm master.tar.gz
 ```
-
-
-Or pull to your local machine and `scp` the `thousandeyes` folder to `<appdinstall>/machine-agent/monitors/thousandeyes` on the remote Machine Agent. 
 
 ### Install Dependencies
+Run `install.sh` in the `thousandeyes` folder to configure Python and other dependencies.  
 ```
-apt-get install -y python3 && \
-    apt-get install -y python3-pip && \
-    apt-get install -y curl && \
-    pip3 install requests
+./${MACHINE_AGENT_HOME}/monitors/thousandeyes/install.sh
 ```
 
 ### Set Configuration Info
-Next you'll need to update the configuration files with your connection and test info:
+Next you'll need to configure your connection info, metrics format, and what ThousandEyes tests you want to pull data from. You can edit the `config.json` file or use Environment Variables. **NOTE** - environment variables take precedence over the `config.json` file. This means `config.json` can be optional.
 
 #### config.json
-* `account-id` is your full Global Account Name located under License->Account. (Analytics Only)
-* `api-key` is your account Access Key under License->Account (or Rules if you have those setup). (Analytics Only)
-* `te-email` is your ThousandEyes Email
-* `te-api-key` is your ThousandEyes API key
-* `te-account group` - the ThousandEyes Account Group name
-* `te-tests` - a list of tests to pull data from. Multiple tests supported.
 
 ```
 {
-    "analytics-api":"https://analytics.api.appdynamics.com",
-    "account-id":"<AppDynamics Global Account ID>", 
-    "api-key":"<AppDynamics API Key>",
-    "te-email":"<ThousandEyes Email>",
-    "te-api-key":"<ThousandEyes API Key>",
-    "te-account-group":"<ThousandEyes Account Name>",
-    "te-tests":["testA", "testB"]
+    "account-id":"", 
+    "api-key":"",
+    "te-email":"",
+    "te-api-key":"",
+    "te-accountgroup":"",
+    "te-tests":[""],
+    "metric-template":"",
+    "schema-name":""
 }
 ```
 
-** Note**: the AppDynamics `Application`, `Tier`, and `Node` must be specified as metadata in the `Description` section of any ThousandEyes tests that data is being pulled from. Metadata is json format, as in the following example:
+#### Environment Variables
 
-```json
+```
+APPD_GLOBAL_ACCOUNT
+APPD_API_KEY
+TE_EMAIL
+TE_API_KEY
+TE_ACCOUNTGROUP
+TE_TESTS 
+TE_METRIC_TEMPLATE
+TE_SCHEMA_NAME
+```
+
+* `APPD_GLOBAL_ACCOUNT`/`account-id` is your full Global Account Name located under License->Account. (Analytics Only)
+* `APPD_API_KEY`/`api-key` is your account Access Key under License->Account (or Rules if you have those setup). (Analytics Only)
+* `TE_EMAIL`/`te-email` is your ThousandEyes Email
+* `TE_API_KEY`/`te-api-key` is your ThousandEyes API key
+* `TE_ACCOUNTGROUP`/`te-account group` is the ThousandEyes Account Group name
+* `TE_TESTS`/`te-tests` is an array of tests to pull data from. Multiple tests supported. Note, this is a json array eg `["test1","test2"]`; when set as environment variable must include outer single quotes: `'["test1","test2"]'`
+* `TE_METRIC_TEMPLATE`/`metric-template` is the format of the Custom Metric. Some examples:
+    - 'name=Server|Component|{tier}|{agent}|{metricname},value={metricvalue}'
+    - 'name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}'
+    - "name=Custom Metrics|$APPDYNAMICS_AGENT_TIER_NAME|{agent}|{metricname},value={metricvalue}"
+**Note** - the metric template supports using the variables `{app}`, `{tier}`, `{node}`. These variables will be set to the metadata values set in the ThousandEyes tests from which metrics are being pulled. The following metadata json can be placed in the `Description` field of a ThousandEyes test for setting the `{app}`, `{tier}`, and `{node}`:
+
+    ```json
+    { 
+        "appd_application":"myapp", 
+        "appd_tier":"myapptier", 
+        "appd_node":"mynode"
+    }
+    ```
+The **metric template** also supports `{metricname}` and `{metricvalue}` which will be set the the name and value of a metric as it's emitted.
+
+* `TE_SCHEMA_NAME`/`schema-name` - this is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
+
+#### metrics.json
+The **metrics.json** defines the list of ThousandEyes metrics to monitor and their name is they will appear in AppDynamics. This file does not need to be changed unless you want to add or remove ThousandEyes Metrics. The default metrics are:
+
+```
 { 
-    "appd_application":"<customerapp>", 
-    "appd_tier":"<frontend>", 
-    "appd_node":"<nodejs-1>"
-}
+    "pageLoadTime": "Page Load",
+    "domLoadTime": "DOM Load",
+    "dnsTime": "DNS Time",
+    "responseTime": "Response Time",
+    "connectTime": "Connect Time",
+    "waitTime": "Wait Time",
+    "receiveTime": "Receive Time",
+    "totalTime": "Total Time",
+    "totalSize": "Total Size", 
+    "responseCode": "Response Code",
+    "numRedirects": "Redirectes",
+    "wireSize": "Wire Size",
+    "avgLatency": "Avg Latency",
+    "maxLatency": "Max Latency",
+    "minLatency": "Min Latency",
+    "loss": "Loss",
+    "jitter": "Jitter"
+} 
 ```
 
-** NOTE: ** 
-When using ** Custom Metrics **, a single Machine Agent can only report metrics for a single Application in AppDynamics. See [https://docs.appdynamics.com/display/PRO40/Associate+Standalone+Machine+Agents+with+Applications](AppD Doc PRO40). To associate the MA with an Application 
-* In the AppDynamics Agents window, select a Machine Agent. Click Associate with an Application. OR
-* Deploy the machine agent on the same host as the app / Application Agent.
+**NOTE** - the ThousandEyes monitor currently supports pulling metrics from the following types of ThousandEyes tests:
 
-## Additional Machine Agent Configurations
-If running on an existing Machine Agent, you may need to make somne additional configuration changes.
+* Page Load
+* HTTP/Web
+* Network
 
+The various metrics values that are available can be found [here](https://developer.thousandeyes.com/v6/tests/#/test_metadata). 
 
+The `monitor.py` file can be enhanced to pull additional metrics from ThousandEyes using additional API endpoints. For example - Path Trace metrics can be pulled from the `/net/path-viz` endpoint. Additional information can be found at 
+[developer.thousandeyes.com](https://developer.thousandeyes.com/).
+
+### Associating your Machine Agent with an Application
+To associate the ThousandEyes Monitor machine agent with an Application in AppDynamics you need to set the following environment variables:
+
+```
+APPDYNAMICS_AGENT_APPLICATION_NAME=<application name>
+APPDYNAMICS_AGENT_TIER_NAME=thousandeyes
+APPDYNAMICS_AGENT_NODE_NAME=thousandeyes
+```
+
+Set `APPDYNAMICS_AGENT_APPLICATION_NAME` to the Application name of an application in AppDynamics being monitored. Note that when using **Custom Metrics** you can only associate a Machine Agent with a single Application in AppDynamics. In some cases you may consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. 
+
+Set `APPDYNAMICS_AGENT_TIER_NAME` and `APPDYNAMICS_AGENT_NODE_NAME` to `thousandeyes`. This is the default in the Docker configuration, but can be changed if desired.
+
+### Monitor Config XML 
+The **monitor.xml** does not need to be modified. However the Python code can be configured to run continuously, but will require changing **monitor.xml** and the **monitor.py* files.
+
+### Additional Machine Agent Settings
+The following machine agent environment settings may also need to be configured. However, if running on an existing Machine Agent these should already be set:
+
+* APPDYNAMICS_AGENT_ACCOUNT_NAME
+* APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+* APPDYNAMICS_CONTROLLER_HOST_NAME
+* APPDYNAMICS_CONTROLLER_PORT
+* APPDYNAMICS_CONTROLLER_SSL_ENABLED
+
+**NOTE** - see [/appd-integration-reference/custom-monitor-docker] for deploying the ThousandEyes Monitor machine agent as a pre-built Docker Container.
 
 ### Check if ThousandEyes Monitor is running
 
@@ -89,56 +157,13 @@ If running on an existing Machine Agent, you may need to make somne additional c
 tail -n 50 /opt/appdynamics/machine-agent/logs/machine-agent.log
 ```
 
-
-
-## Configuring a Machine Agent
-#### configuration.env
-
-Create .setup.sh and call that in Dockerfile.
-
-#### Install Python
-For this example we're using a python script, so Python3 needs to be installed.
-
-#### Make the ThousandEyes Monitor executable
-`sudo chmod +x teappd-monitor.sh`
-`sudo chmod +x teappd-monitor.py`
-
-#### Enable Machine Agent as a Service (Optional)
-
+You should see logs of the monitor being run periodically:
 ```
-sudo cp /opt/appdynamics/machine-agent/etc/systemd/system/appdynamics-machine-agent.service /etc/systemd/system/appdynamics-machine-agent.service
-sudo systemctl enable appdynamics-machine-agent
-sudo systemctl start appdynamics-machine-agent
-sudo systemctl status appdynamics-machine-agent
-sudo systemctl restart appdynamics-machine-agent
+[Agent-Monitor-Scheduler-4] 20 Aug 2020 05:01:35,386  INFO PeriodicTaskRunner - Periodic Task - setup metric feed for [ThousandEyesMonitor]
+[Agent-Monitor-Scheduler-4] 20 Aug 2020 05:01:35,386  INFO PeriodicTaskRunner - Returning time out value of [120000] ms for monitor task [ThousandEyesMonitor]
+[Agent-Monitor-Scheduler-4] 20 Aug 2020 05:01:35,387  INFO ExecTask - Running Executable Command [[/opt/appdynamics/machine-agent/monitors/thousandeyes/monitor.sh]]
+[Agent-Monitor-Scheduler-4] 20 Aug 2020 05:01:41,639  INFO MonitorStreamConsumer - Stopping monitored process
 ```
 
-* Check the Machine Agent logs *
-`tail -n 100 /opt/appdynamics/machine-agent/logs/machine-agent.log`
-
-
-## Install On Docker Machine Agent
-Example: adcapital docker host
-ssh -i te-agent.pem ubuntu@44.229.47.134
-
-Docker image is build from `openjdk:8-jre-slim`.
-Machine Agent ZIP is copied in `Dockerfile`
-
-Machine Agent is launched in container startup file
-```
-
-# Start Machine Agent
-java ${MA_PROPERTIES} -jar ${MACHINE_AGENT_HOME}/machineagent.jar
-```
-
-try building container locally
-
-
-
-
-#### Note on Metrics
-
-* Metrics with the Custom Metrics prefix are common across all tiers in your application
-* Metrics with the `Server|Component:<tier-name-or-tier-id>`` prefix appear only under the specified tier. If you attempt to publish metrics to a tier that is not associated with the Machine Agent, the metrics are not reported.
 
 

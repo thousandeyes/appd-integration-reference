@@ -1,25 +1,7 @@
-## Manual Setup and Usage
+## ThousandEyes Custom Monitor - Python Script 
 
-Copy the `thousandeyes` folder to `<appdinstall>/machine-agent/monitors/thousandeyes`. 
+This the Python based ThousandEyes machine agent monitor. This code can be copied to `${MACHINE_AGENT_HOME}/monitors/thousandeyes`. 
 
-Update the configuration files with your connection and test info:
+Environment variables or `config.json` must be set.
 
-#### config.json
-
-* The `account-id` is your full Global Account Name located under License->Account (in the AppD controller UI).
-* The `api-key` is your account Access Key under License->Account (or Rules if you have those setup).
-* 
-* `te-account group` - the ThousandEyes Account Group name
-* `te-tests` - a list of tests to pull data from. Multiple tests supported.
-
-```json
-{
-    "analytics-api":"https://analytics.api.appdynamics.com",
-    "account-id":"<AppDynamics Global Account ID>", 
-    "api-key":"<AppDynamics API Key>",
-    "te-email":"<ThousandEyes Email>",
-    "te-api-key":"<ThousandEyes API Key>",
-    "te-account-group":"<ThousandEyes Account Name>",
-    "te-tests":["testA", "testB"]
-}
-```
+See ../readme.md for installation and usage instructions.

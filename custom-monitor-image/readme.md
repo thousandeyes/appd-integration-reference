@@ -22,8 +22,8 @@ This script will
 
 You may need to manually update the SHA256 value in `/build/thousandeyes-monitor/docker-compose.yaml`.
 
-## Deploying the Docker Image
-To spin up a ThousandEyes Monitor from the Docker image you'll just need to set the appropriate environment variables and pass those to either `docker run` or `docker-compose up`. This example uses `docker-compose`.
+## Configure the Monitor
+Before you spin up a ThousandEyes Monitor from the Docker image you'll need to set a few environment variables and pass those to either `docker run` or `docker-compose up`. These variables will configure the machine agent as well as the Monitor config settings (same as config.json). This example uses `docker-compose`.
 
 ### Edit the Config File
 Edit the `configuration.env` file. The environment variables defined in this file are the same as those discussed in the [custom-monitor/readme.md]. Fill in the appropriate AppDynamics and ThousandEyes connection and credential info. Then fill in the information about what tests metrics you want to pull from ThousandEyes and what Application you want to associate with in AppDynamics.
@@ -91,7 +91,7 @@ APPDYNAMICS_DOCKER_ENABLED=false
 APPDYNAMICS_SIM_ENABLED=false
 ```
 
-### Run your Container
+## Deploy your Container
 After you've configured `configuration.env` run your container using `docker-compose`. This will use the `docker-compose.yaml` file which automatically uses the `configuration.env` file to set all the required environment variables.
 
 A simple docker-compose.yaml:

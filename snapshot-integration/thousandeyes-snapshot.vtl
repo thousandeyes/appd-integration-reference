@@ -1,19 +1,14 @@
 #set( $String = '' )
 #set( $to = $String.format('%1$tY-%1$tm-%1$tdT%1$tH:%1$tM:%1$tS ', $latestEvent.eventTime))
-#set( $todate = $String.format('%1$tY-%1$tm-%1$tdT', $latestEvent.eventTime))
 #set( $tohour = $String.format('%1$tH', $latestEvent.eventTime))
-#set( $tomin = $String.format('%1$tM', $latestEvent.eventTime))
-#set( $tosec = $String.format('%1$tS', $latestEvent.eventTime))
-#set( $dummyint = 1)
-#set( $hour = $dummyint.valueOf($tohour))
-#set( $myCal = $convert.toCalendar($latestEvent.eventTime) )
-#set( $myCal2 = $myCal.add($calConst.HOUR, 4))
-#set( $myFrom = $convert.toDate($myCal2))
-#set( $from = $String.format('%1$tY-%1$tm-%1$tdT%1$tH:%1$tM:%1$tS ', $myFrom))
+#set($tohourint = 0)
+#set( $fromhourint = $tohourint.parseInt($tohour) - 1)
+#set( $fromhour = $fromhourint.toString())
+#set( $from = $String.format('%1$tY-%1$tm-%1$tdT%2$s:%1$tM:%1$tS ', $latestEvent.eventTime, $fromhour))
 {
     "testId": ${testid},
     "displayName": "Snapshot from AppDynamics - ${testname} - ${to}",
-    "from": "${to}",
+    "from": "${from}",
     "to": "${to}",
     "isPublic": 1
 }

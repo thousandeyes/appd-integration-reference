@@ -152,6 +152,7 @@ def print_custom_metrics (testround, metrics, metric_template):
             agent = unidecode(testround['agentName'].replace(',', ' '))
             metricname = metrics[metric]
             metricvalue = testround[metric]
+            testName = testround['testName']
             metric_count_key=str(testround['roundId'])+"-"+agent
             AGENT_METRIC_COUNT_PER_TESTROUND[metric_count_key]=AGENT_METRIC_COUNT_PER_TESTROUND[metric_count_key]+1 if metric_count_key in AGENT_METRIC_COUNT_PER_TESTROUND else 1
                         
@@ -207,7 +208,7 @@ def query_latest_data (username, authtoken, accountname, testname, window_second
 
         for agentdata in testDetails['agents']:
             testdata = teApi.getTestPageloadData(test['testId'])
-            if testdata :
+            if testdata and 'web' in testdata.keys() :
                 update_aggregated_metrics (aggdata, testdata['web']['pageLoad'], testDetails, appinfo)
                 try:
                     while testdata['pages']['next']:

@@ -218,7 +218,7 @@ def query_latest_data (username, authtoken, accountname, testname, window_second
                     pass
 
             httpdata = teApi.getTestHttpData(test['testId'])
-            if httpdata :
+            if httpdata and 'web' in httpdata.keys() :
                 update_aggregated_metrics (aggdata, httpdata['web']['httpServer'], testDetails, appinfo)
                 try:
                     while httpdata['pages']['next']:
@@ -228,7 +228,7 @@ def query_latest_data (username, authtoken, accountname, testname, window_second
                     pass
 
             networkdata = teApi.getTestNetData(test['testId'])
-            if networkdata:
+            if networkdata and 'net' in networkdata.keys() :
                 update_aggregated_metrics (aggdata, networkdata['net']['metrics'], testDetails, appinfo)
                 try:
                     while networkdata['pages']['next']:

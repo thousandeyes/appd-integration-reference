@@ -6,11 +6,7 @@ AppDynamics alerts can be triggered by external sources like ThousandEyes using 
 
 Users can setup alert notifications using the AppD notification drop-down in ThousandEyes. 
 
-[image]
-
 Once the notification is setup, the user can associate the notification with any Alert Rules they have setup in ThousandEyes. Once this is done, ThousandEyes will send full alert data to AppDynamics whenver the associated Alert. Here is an example of how alerts appear in AppD:
-
-[image]
 
 In addition, the `thousandeyes-alert-template.json`, shows example of setting up an alert policy for ThousandEyes alert in AppD.
 

@@ -40,8 +40,19 @@ Run `install.sh` in the `thousandeyes` folder to configure Python and some other
 ### Configure
 You'll need to configure your connection info, metrics format, and what ThousandEyes tests you want to pull data from. You can edit the `config.json` file or use Environment Variables. Environment variables take precedence over the `config.json` file (making `config.json` optional).
 
-#### config.json
+**env variables**
+```bash
+TE_METRIC_TEMPLATE
+TE_SCHEMA_NAME
+APPD_GLOBAL_ACCOUNT
+APPD_API_KEY
+TE_EMAIL
+TE_API_KEY
+TE_ACCOUNTGROUP
+TE_TESTS 
+```
 
+**config.json**
 ```json
 {
     "account-id":"", 
@@ -55,42 +66,18 @@ You'll need to configure your connection info, metrics format, and what Thousand
 }
 ```
 
-#### Environment Variables
+#### Metric Name Template - `TE_METRIC_TEMPLATE`/`metric-template`
+One of the most important configuration options (when using custom metrics) is the custom metric name template. `TE_METRIC_TEMPLATE`/`metric-template` specifies the format of the Custom Metric. The default and recommended format is:
 
-```bash
-APPD_GLOBAL_ACCOUNT
-APPD_API_KEY
-TE_EMAIL
-TE_API_KEY
-TE_ACCOUNTGROUP
-TE_TESTS 
-TE_METRIC_TEMPLATE
-TE_SCHEMA_NAME
-```
+`name=Custom Metrics|thousandeyes|{tier}|{testName}|{agent}|{metricname},value={metricvalue}`
 
-* `APPD_GLOBAL_ACCOUNT`/`account-id` is your full Global Account Name located under License->Account. (Analytics Only)
-* `APPD_API_KEY`/`api-key` is your account Access Key under License->Account (or Rules if you have those setup). (Analytics Only)
-* `TE_EMAIL`/`te-email` is your ThousandEyes Email
-* `TE_API_KEY`/`te-api-key` is your ThousandEyes API key
-* `TE_ACCOUNTGROUP`/`te-account group` is the ThousandEyes Account Group name
-* `TE_TESTS`/`te-tests` is an array of tests to pull data from. Multiple tests supported. Note, this is a json array eg `["test1","test2"]`; When set as an environment variable you must include outer single quotes: `'["test1","test2"]'`. 
+The `{bracketed}` entries in the custom metrics template refer to variables that you can use that will be substituted at runtime. These variables are extracted in the (Python) monitor script:
 
-```bash
-TE_TESTS='["mytest1", "mytest2"]'
-```
+The **metric template** also supports `{metricname}` and `{metricvalue}` which are set the the name and value of each metric.
 
-When passing as an environment variable to `docker-compose`, you must omit the outer ' ' (due to yaml parsing). This can feel odd as it's not valid bash.
-
-```bash
-TE_TESTS=["mytest1", "mytest2"]
-```
-
-* `TE_METRIC_TEMPLATE`/`metric-template` is the format of the Custom Metric. Some examples:
-    - `name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}`
-    - `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
-    - `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue}`
-
-The metric template supports the variables `{app}`, `{tier}`, `{node}`. These variables are set by metadata you can place in the `Description` field of the ThousandEyes tests. The metadata format is: 
+*  `{metricname}` and `{metricvalue}` - set the the name and value of each metric. The mapping between ThousandEyes metric name and AppD metric name is defined in `metrics.json` (see below)
+* `{testName}` - the name of the ThousandEyes test associated with the metric
+* `{app}`, `{tier}`, `{node}` - these variables are set to metadata values you can specify in the `Description` field of the ThousandEyes tests. The metadata format is: 
 
 ```json
 { 
@@ -100,12 +87,9 @@ The metric template supports the variables `{app}`, `{tier}`, `{node}`. These va
 }
 ```
 
-Where `appd_application` sets `{app}`, `appd_tier` sets `{tier}`, and `appd_node` sets `{node}`. The **metric template** also supports `{metricname}` and `{metricvalue}` which are set the the name and value of each metric.
+where `appd_application` sets `{app}`, `appd_tier` sets `{tier}`, and `appd_node` sets `{node}`. 
 
-
-* `TE_SCHEMA_NAME`/`schema-name` is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
-
-#### metrics.json
+**metrics.json**
 The **metrics.json** defines the list of ThousandEyes metrics to monitor and their name is they will appear in AppDynamics. This file does not need to be changed unless you want to add or remove ThousandEyes Metrics. The default metrics are:
 
 ```json
@@ -141,6 +125,29 @@ The various metrics values that are available can be found [here](https://develo
 The `monitor.py` file can be enhanced to pull additional metrics from ThousandEyes using additional API endpoints. For example - Path Trace metrics can be pulled from the `/net/path-viz` endpoint. Additional information can be found at 
 [developer.thousandeyes.com](https://developer.thousandeyes.com/).
 
+#### Other Configuration Settings
+
+* `APPD_GLOBAL_ACCOUNT`/`account-id` is your full Global Account Name located under License->Account. (Analytics Only)
+* `APPD_API_KEY`/`api-key` is your account Access Key under License->Account (or Rules if you have those setup). (Analytics Only)
+* `TE_EMAIL`/`te-email` is your ThousandEyes Email
+* `TE_API_KEY`/`te-api-key` is your ThousandEyes API key
+* `TE_ACCOUNTGROUP`/`te-account group` is the ThousandEyes Account Group name
+* `TE_TESTS`/`te-tests` is an array of tests to pull data from. Multiple tests supported. Note, this is a json array eg `["test1","test2"]`; When set as an environment variable you must include outer single quotes: `'["test1","test2"]'`. 
+
+```bash
+TE_TESTS='["mytest1", "mytest2"]'
+```
+
+When passing as an environment variable to `docker-compose`, you must omit the outer ' ' (due to yaml parsing). This can feel odd as it's not valid bash.
+
+```bash
+TE_TESTS=["mytest1", "mytest2"]
+```
+
+* `TE_SCHEMA_NAME`/`schema-name` is the name of the schema that will be used for Analytics. This is optional and defaults to `thousandeyes`. If you change the `schema.json` file you must change the name of the schema to a new and unique schema name.
+
+
+
 ### Associating your Machine Agent with an Application
 To associate the ThousandEyes Monitor machine agent with an Application in AppDynamics you need to set the following environment variables:
 
@@ -154,16 +161,15 @@ Set `APPDYNAMICS_AGENT_APPLICATION_NAME` to the Application name of an applicati
 
 Set `APPDYNAMICS_AGENT_TIER_NAME` and `APPDYNAMICS_AGENT_NODE_NAME` to `thousandeyes`. This is the default recommended, but can be changed if desired. The ThousandEyes Monitor will appear under the specified application as a `thousandeyes` Java tier.
 
-Note that Custom Metrics only allow associating a Machine Agent with a **single application** in AppDynamics. When writing metrics to an app you're monitoring in Appd you'll most likely want to use one of the following metric templates:
+Note that Custom Metrics only allow associating a Machine Agent with a **single application** in AppDynamics. When writing metrics to an app you're monitoring in Appd we recommend using the following metric template:
 
-* `name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}`
-* `name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}`
+* `name=Custom Metrics|thousandeyes|{tier}|{testName}|{agent}|{metricname},value={metricvalue}`
 
 These will appear under the Application's Metrics under each Tier that we're generating metrics for.
 
-In some cases you may want to use a single machine agent monitor to stream data for *multiple applicaitons*. In this scenario, you can consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. This will not be the same app as the apps you're monitor. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. In this case you will most likely want to use the following metric template:
+In some cases you may want to use a single machine agent monitor to stream data for *multiple applicaitons*. In this scenario, you can consider creating a "dummy Application" in Appdynamics and associating the machine agent with that App. This will not be the same app as the apps you're monitor. Using a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. In this case you will most likely want to use the following metric template (note the added `{app}`:
 
-* `name=Custom Metrics|{app}|{tier}|{agent}|{metricname},value={metricvalue} `
+* `name=Custom Metrics|thousandeyes|{app}|{tier}|{testName}|{agent}|{metricname},value={metricvalue}`
 
 Note the addition of the `{app}` variable, allowing multiple applications (as specified in the ThousandEyes test metadata) to report data under the same machine agent / dummy app.  
 

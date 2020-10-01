@@ -33,19 +33,16 @@ Note - using Apache VTL to format time string in request.
 In ThousandEyes, the “adcapital” test ID is 1246117.
 
 ```
-#set($to = '') 
-#set($from = '')
-#set($calFrom = $latestEvent.eventTime.toCalendar($latestEvent.eventTime))
-#set($calTo = $calFrom)
-## 4 hour snapshot window
-$calFrom.add(10, -4)
-##$to.format('yyyy-MM-ddTHH:mm:ss',$calTo.time)
-##$from.format('yyyy-MM-ddTHH:mm:ss',$calFrom.time)
-$to.format('%1$tY-%1$tm-%1$tdT%1$tH:%1$tM:%1$tS ', $calTo.time)
-$from.format('%1$tY-%1$tm-%1$tdT%1$tH:%1$tM:%1$tS ', $calFrom.time)
+#set( $String = '' )
+#set( $to = $String.format('%1$tY-%1$tm-%1$tdT%1$tH:%1$tM:%1$tS ', $latestEvent.eventTime))
+#set( $tohour = $String.format('%1$tH', $latestEvent.eventTime))
+#set($tohourint = 0)
+#set( $fromhourint = $tohourint.parseInt($tohour) - 1)
+#set( $fromhour = $fromhourint.toString())
+#set( $from = $String.format('%1$tY-%1$tm-%1$tdT%2$s:%1$tM:%1$tS ', $latestEvent.eventTime, $fromhour))
 {
-    "testId": 1246117,
-    "displayName": "ADCapital - ${to}",
+    "testId": ${testid},
+    "displayName": "Snapshot from AppDynamics - ${testname} - ${to}",
     "from": "${from}",
     "to": "${to}",
     "isPublic": 1

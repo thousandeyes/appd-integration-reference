@@ -1,36 +1,38 @@
 # ThousandEyes Snapshot Integration
-Create a ThousandEyes snapshot when an AppDynamics Event / Alert occurs.
 
-This uses AppDyamics' HTTP Request Template webhook integration feature, similar to ThousandEyes alert webhook notification. 
+Create a ThousandEyes snapshot when an AppDynamics event or alert occurs.
 
-For each ThousandEyes test associated with a given AppD application (or tier / node) we will create a separate HTTP request to trigger a ThousandEyes snapshot via the ThousandEyes API. 
+This uses AppDynamics' HTTP Request Template webhook integration feature, similar to the ThousandEyes alert webhook notification. 
 
-We will create an HTTP Request template so that the ThousandEyes snapshot time window and TestID can be provided dynamically.
+For each ThousandEyes test associated with a given AppDynamics application (or tier or node), we will create a separate HTTP request to trigger a ThousandEyes snapshot via the ThousandEyes API. 
+
+We will create an HTTP request template so that the ThousandEyes snapshot time window and test ID can be provided dynamically.
 
 ## Create HTTP Request Template
-1. Under `Alert and Respond` select `HTTP Request Template`.
-2. Click "+" (New)
-3. Setup HTTP Request Template to trigger ThousandEyes Snapshot:
+
+1. Under **Alert & Respond**, select **HTTP Request Template**.
+2. Click **+** (New)
+3. Set up a HTTP request template to trigger a ThousandEyes snapshot:
 
 ### Name
-Name the HTTP Request `ThousandEyes Snapshot`
 
-### Set Request URL
+Name the HTTP request **ThousandEyes Snapshot**.
 
-Set the request URL to `POST https://api.thousandeyes.com/v6/snapshot.json`
+### Set the Request URL
+
+Set the request URL to **POST https://api.thousandeyes.com/v6/snapshot.json**.
 
 [httprequest-url.png]
 
 ### Set Authentication
 
-Set authentication to `Basic`. Use your ThousandEyes username and API token as password.
+Set authentication to **Basic**. Use your ThousandEyes username and API token as password.
 
+### Set the Payload
 
-### Set Payload
+Note - Using Apache VTL to format time string in request.
 
-Note - using Apache VTL to format time string in request.
-
-In ThousandEyes, the “adcapital” test ID is 1246117.
+In ThousandEyes, the test ID for the **adcapital** test is 1246117.
 
 ```
 #set( $String = '' )
@@ -49,12 +51,14 @@ In ThousandEyes, the “adcapital” test ID is 1246117.
 }
 ```
 
-### Save HTTP Request
+### Save the HTTP Request
+
 [httprequest-save.png]
 
 
-### Setup Alert Policy to Trigger HTTP Request
-See [thousandeyes-snapshot-template.json](thousandeyes-snapshot-template.json) as an example of referencing the HTTP Request Template from an Alert Policy.
+### Set up an Alert Policy to Trigger the HTTP Request
+
+See [thousandeyes-snapshot-template.json](thousandeyes-snapshot-template.json) as an example of referencing the HTTP request template from an alert policy.
 
 ```
 {

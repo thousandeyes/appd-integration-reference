@@ -11,13 +11,14 @@ Once created, our HTTP request template can be called by actions defined in AppD
 2. Click **+** (New)
 3. Set up a HTTP request template to trigger a ThousandEyes snapshot:
 
-### Name
-### Custom Templating Variables
+### Set the Custom Templating Variables
+
 Add the following custom templating variables:
-- `accountId` - this is the ThousandEyes account that the snapshot will be created in. Default value can be set to a specific account ID, or specified by the calling Action.
-- `testId` - the ID of the test in ThousandEyes to trigger a snapshot on. No default value - should be set by the calling Action. Note - a test's ID can be found by viewing a test in ThousandEyes and looking for the `testId` parameter in the URL. For example: 
- `https://app.thousandeyes.com/view/tests/?testId=1705574`
- - `testName` - the name of the test in ThousandEyes. No default value - should be set by the calling Action.
+
+* `accountId` - The ThousandEyes account that the snapshot will be created in. The default value can be set to a specific account ID, or specified by the calling action.
+* `testId` - The ID of the test in ThousandEyes to trigger a snapshot on. No default value; this should be set by the calling action. Note - a test's ID can be found by viewing a test in ThousandEyes and looking for the `testId` parameter in the URL. For example: `https://app.thousandeyes.com/view/tests/?testId=1705574`
+* `testName` - The name of the test in ThousandEyes. No default value; this should be set by the calling action.
+
 Name the HTTP request **ThousandEyes Snapshot**.
 
 ### Set the Request URL

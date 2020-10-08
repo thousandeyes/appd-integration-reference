@@ -1,6 +1,6 @@
 # ThousandEyes Snapshot Integration
 
-Create a ThousandEyes snapshot when an AppDynamics event or alert occurs.
+Create an AppDynamics HTTP Request Template that triggers a [Snapshot in ThousandEyes](https://docs.thousandeyes.com/product-documentation/tests/sharing-test-data). (Note that ThousandEyes Snapshots are different than AppDynamics snapshots). The HTTP Request Template will use the ThousandEyes API to create the snapshot.
 
 This uses AppDynamics' HTTP Request Template webhook integration feature, similar to the ThousandEyes alert webhook notification. 
 
@@ -95,4 +95,3 @@ See [thousandeyes-snapshot-template.json](thousandeyes-snapshot-template.json) a
 ```
 
 [httprequest-action.png]
-

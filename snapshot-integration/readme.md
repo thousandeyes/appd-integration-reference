@@ -4,7 +4,6 @@ Create an AppDynamics HTTP request template that triggers a [Snapshot in Thousan
 
 For each ThousandEyes test associated with a given AppDynamics application (or tier or node), we will create a separate HTTP request to trigger a ThousandEyes snapshot via the ThousandEyes API. 
 
-We will create an HTTP request template so that the ThousandEyes snapshot time window and test ID can be provided dynamically.
 
 ## Create HTTP Request Template
 

@@ -35,7 +35,6 @@ Set authentication to **Basic**. Use your ThousandEyes username and API token as
 
 Note - Using Apache VTL to format time string in request.
 
-In ThousandEyes, the test ID for the **adcapital** test is 1246117.
 
 ```
 #set( $String = '' )

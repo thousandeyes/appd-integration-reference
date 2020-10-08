@@ -4,4 +4,4 @@ ThousandEyes natively supports sending alert notifications directly to AppDynami
 
 Once the notification is set up, you can associate the notification with any alert rules they have set up in ThousandEyes. Once this is done, ThousandEyes will send full alert data to AppDynamics whenever the associated alert is triggered. <!-- Here is an example of how alerts appear in AppDynamics: -->
 
-In addition, **thousandeyes-alert-template.json** shows an example of setting up an alert policy for a ThousandEyes alert in AppDynamics.
+In AppDynamics, ThousandEyes alerts show up as Custom Events of type `ThousandEyesAlert`.  The **thousandeyes-alert-template.json** file shows an example of an AppDynamics Alert Policy that is triggered by ThousandEyes alerts.

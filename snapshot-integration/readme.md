@@ -2,7 +2,7 @@
 
 Create an AppDynamics HTTP request template that triggers a [Snapshot in ThousandEyes](https://docs.thousandeyes.com/product-documentation/tests/sharing-test-data). (Note that ThousandEyes snapshots are different from AppDynamics snapshots.) The HTTP request template will use the ThousandEyes API to create the snapshot.
 
-For each ThousandEyes test associated with a given AppDynamics application (or tier or node), we will create a separate HTTP request to trigger a ThousandEyes snapshot via the ThousandEyes API. 
+Once created, our HTTP request template can be called by Actions defined in AppDynamics. We will define dynamic variables for the template - `testId`, `testName`, and `accountId` - that are specified by each Action, so that a single HTTP request template can be used to trigger a snapshot for any test in ThousandEyes. 
 
 
 ## Create HTTP Request Template

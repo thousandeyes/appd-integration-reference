@@ -1,12 +1,14 @@
 # ThousandEyes Machine Agent Extension - Docker Image
-This example will show how to
 
-* Build a Machine Agent Docker image bundled with the Thousandeyes Monitor
-* Configure and deploy a ThousandEyes Monitor container for monitoring an app
-* How to conifgure and deploy the NetworkViz Agent for connection info in AppDynamics
+This example shows how to
+
+* Build a machine agent Docker image bundled with the Thousandeyes monitor.
+* Configure and deploy a ThousandEyes monitor container for monitoring an app.
+* Conifgure and deploy the NetworkViz agent for connection info in AppDynamics.
 
 ## Building the Docker Image
-First you'll need to download the Machine Agent bundle zip from https://downloads.appdynamics.com.
+
+First you'll need to download the machine agent bundle zip from https://downloads.appdynamics.com.
 
 Next, run `./build.sh` and pass the name of the machine agent file you downloaded.
 
@@ -15,18 +17,20 @@ Next, run `./build.sh` and pass the name of the machine agent file you downloade
 ```
 
 This script will 
-* copy the zip to `build/thousandeyes-monitor/machineagent-bundle.zip` 
-* copy the local ThousandEyes Monitor code into the build folder
-* run `docker-compose build --no-cache`
-* Create the `thousandeyes/appd-monitor` Docker image
+* Copy the zip to `build/thousandeyes-monitor/machineagent-bundle.zip`.
+* Copy the local ThousandEyes Monitor code into the build folder.
+* Run `docker-compose build --no-cache`.
+* Create the `thousandeyes/appd-monitor` Docker image.
 
 You may need to manually update the SHA256 value in `/build/thousandeyes-monitor/docker-compose.yaml`.
 
-## Configure the Monitor
-Before you spin up a ThousandEyes Monitor from the Docker image you'll need to set a few environment variables and pass those to either `docker run` or `docker-compose up`. These variables will configure the machine agent as well as the Monitor config settings (same as config.json). This example uses `docker-compose`.
+## Configuring the Monitor
 
-### Edit the Config File
-Edit the `configuration.env` file. The environment variables defined in this file are the same as those discussed in the [custom-monitor/readme.md]. Fill in the appropriate AppDynamics and ThousandEyes connection and credential info. Then fill in the information about what tests metrics you want to pull from ThousandEyes and what Application you want to associate with in AppDynamics.
+Before you spin up a ThousandEyes Monitor from the Docker image, you'll need to set a few environment variables and pass those to either `docker run` or `docker-compose up`. These variables will configure the machine agent as well as the Monitor config settings (same as **config.json**). This example uses `docker-compose`.
+
+### Editing the Config File
+
+Edit the **configuration.env** file. The environment variables defined in this file are the same as those discussed in the [custom-monitor/readme.md]. Fill in the appropriate AppDynamics and ThousandEyes connection and credential information. Then fill in the information about what tests metrics you want to pull from ThousandEyes and what application you want to associate with in AppDynamics.
 
 Here's an example configuration file contents:
 
@@ -45,56 +49,56 @@ APPD_GLOBAL_ACCOUNT=thousa..._b454a33d-....
 APPD_API_KEY=ffe982d6-....-da53374b74
 ```
 
-Set your ThousandEyes Credentials
+Set your ThousandEyes credentials
 ```bash
 TE_EMAIL=hashlock@thousandeyes.com
 TE_API_KEY=ncea...p5
 ```
 
-Set the Application Name of the application in AppD to send metrics to. Alternatively, set this to a dummy application in AppDynamics. Setting to a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes Monitor machine agent. The Tier and Node should remain "thousandeyes", but can be changed if desired.
+Set the application name of the application in AppDynamics to send metrics to. Alternatively, set this to a dummy application in AppDynamics. Setting to a dummy application will allow collecting metrics for multiple applications using a single ThousandEyes monitor machine agent. The tier and node should remain **thousandeyes**, but can be changed if desired.
 ```bash
 APPDYNAMICS_AGENT_APPLICATION_NAME=samplenodejs2
 APPDYNAMICS_AGENT_TIER_NAME=thousandeyes
 APPDYNAMICS_AGENT_NODE_NAME=thousandeyes
 ```
 
-Specify what ThousandEyes Account Group and Tests the monitor will pull metrics from.
+Specify what ThousandEyes account group and tests the monitor will pull metrics from.
 ```bash
 TE_ACCOUNTGROUP="Integration AppD"
 TE_TESTS=["samplenodejs2"]
 ```
 
-Specify the format of the Custom Metrics output. This is a templated value (see details in the custom-monitor readme). This is the recommended format for monitoring a single application:
+Specify the format of the custom metrics output. This is a templated value (see details in the custom-monitor readme). This is the recommended format for monitoring a single application:
 ```bash
 TE_METRIC_TEMPLATE="name=Custom Metrics|{tier}|{agent}|{metricname},value={metricvalue}"
 #TE_METRIC_TEMPLATE="name=Server|Component:{tier}|{agent}|{metricname},value={metricvalue}"
 ```
 
-The name of the Analytics schema (Analytics only).
+The name of the analytics schema (Analytics only).
 ```bash
 TE_SCHEMA_NAME=thousandeyes
 ```
 
-The ThousandEyes Monitor host ID. This must be set to a unique host name ID so that Machine Agent can restart without conflict. If not set this will default to `thousandeyes-${APPDYNAMICS_AGENT_APPLICATION_NAME}` (in Docker startup.sh)
+The ThousandEyes monitor host ID. This must be set to a unique host name ID so that the machine agent can restart without conflict. If not set, this will default to `thousandeyes-${APPDYNAMICS_AGENT_APPLICATION_NAME}` (in Docker **startup.sh**)
 
 ```bash
 APPDYNAMICS_AGENT_UNIQUE_HOST_ID=thousandeyes-samplenodejs2
 ```
 
-
-Other AppD settings that may be of interest to configure as well. If you run into the metric limit (450) you can increase with APPDYNAMICS_AGENT_METRIC_LIMIT.  SIM is not required for Custom Metrics.
+Other AppDynamics settings that may be of interest to configure as well. If you run into the metric limit (450) you can increase with APPDYNAMICS_AGENT_METRIC_LIMIT.  SIM is not required for custom metrics.
 ```bash
-# Machine Agent metric limit is 450
+# Machine agent metric limit is 450
 # SIM and Docker are disabled by default
 APPDYNAMICS_AGENT_METRIC_LIMIT=2000
 APPDYNAMICS_DOCKER_ENABLED=false
 APPDYNAMICS_SIM_ENABLED=false
 ```
 
-## Deploy your Container
-After you've configured `configuration.env` run your container using `docker-compose`. This will use the `docker-compose.yaml` file which automatically uses the `configuration.env` file to set all the required environment variables.
+## Deploying Your Container
 
-A simple docker-compose.yaml:
+After you've configured **configuration.env**, run your container using `docker-compose`. This will use the **docker-compose.yaml** file, which automatically uses the `configuration.env` file to set all the required environment variables.
+
+A simple **docker-compose.yaml**:
 ```yaml
 services:
   te-appd-monitor:
@@ -107,7 +111,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 ```
 
-`docker-compose up` will get the Contianer running. The startup script of the `thousandeyes/appd-monitor` image will display what options it was configured with at container boot up. For example:
+`docker-compose up` will get the container running. The startup script of the `thousandeyes/appd-monitor` image will display what options it was configured with at container bootup. For example:
 
 ```
 te-appd-monitor     | Starting the ThousandEyes AppD Monitor Extension

@@ -1,36 +1,40 @@
 # ThousandEyes Snapshot Integration
-Create a ThousandEyes snapshot when an AppDynamics Event / Alert occurs.
 
-This uses AppDyamics' HTTP Request Template webhook integration feature, similar to ThousandEyes alert webhook notification. 
+Create an AppDynamics HTTP request template that triggers a [Snapshot in ThousandEyes](https://docs.thousandeyes.com/product-documentation/tests/sharing-test-data). (Note that ThousandEyes snapshots are different from AppDynamics snapshots.) The HTTP request template will use the ThousandEyes API to create the snapshot.
 
-For each ThousandEyes test associated with a given AppD application (or tier / node) we will create a separate HTTP request to trigger a ThousandEyes snapshot via the ThousandEyes API. 
+Once created, our HTTP request template can be called by actions defined in AppDynamics. We will define dynamic variables for the template - `testId`, `testName`, and `accountId` - that are specified by each action, so that a single HTTP request template can be used to trigger a snapshot for any test in ThousandEyes. 
 
-We will create an HTTP Request template so that the ThousandEyes snapshot time window and TestID can be provided dynamically.
 
 ## Create HTTP Request Template
-1. Under `Alert and Respond` select `HTTP Request Template`.
-2. Click "+" (New)
-3. Setup HTTP Request Template to trigger ThousandEyes Snapshot:
 
-### Name
-Name the HTTP Request `ThousandEyes Snapshot`
+1. Under **Alert & Respond**, select **HTTP Request Template**.
+2. Click **+** (New)
+3. Set up a HTTP request template to trigger a ThousandEyes snapshot:
 
-### Set Request URL
+### Set the Custom Templating Variables
 
-Set the request URL to `POST https://api.thousandeyes.com/v6/snapshot.json`
+Add the following custom templating variables:
+
+* `accountId` - The ThousandEyes account that the snapshot will be created in. The default value can be set to a specific account ID, or specified by the calling action.
+* `testId` - The ID of the test in ThousandEyes to trigger a snapshot on. No default value; this should be set by the calling action. Note - a test's ID can be found by viewing a test in ThousandEyes and looking for the `testId` parameter in the URL. For example: `https://app.thousandeyes.com/view/tests/?testId=1705574`
+* `testName` - The name of the test in ThousandEyes. No default value; this should be set by the calling action.
+
+Name the HTTP request **ThousandEyes Snapshot**.
+
+### Set the Request URL
+
+Set the request URL to **POST https://api.thousandeyes.com/v6/snapshot.json**.
 
 [httprequest-url.png]
 
 ### Set Authentication
 
-Set authentication to `Basic`. Use your ThousandEyes username and API token as password.
+Set authentication to **Basic**. Use your ThousandEyes username and API token as password.
 
+### Set the Payload
 
-### Set Payload
+Note - Using Apache VTL to format time string in request.
 
-Note - using Apache VTL to format time string in request.
-
-In ThousandEyes, the “adcapital” test ID is 1246117.
 
 ```
 #set( $String = '' )
@@ -49,12 +53,14 @@ In ThousandEyes, the “adcapital” test ID is 1246117.
 }
 ```
 
-### Save HTTP Request
+### Save the HTTP Request
+
 [httprequest-save.png]
 
 
-### Setup Alert Policy to Trigger HTTP Request
-See [thousandeyes-snapshot-template.json](thousandeyes-snapshot-template.json) as an example of referencing the HTTP Request Template from an Alert Policy.
+### Set up an Alert Policy to Trigger the HTTP Request
+
+See [thousandeyes-snapshot-template.json](thousandeyes-snapshot-template.json) as an example of referencing the HTTP request template from an alert policy.
 
 ```
 {
@@ -91,4 +97,3 @@ See [thousandeyes-snapshot-template.json](thousandeyes-snapshot-template.json) a
 ```
 
 [httprequest-action.png]
-

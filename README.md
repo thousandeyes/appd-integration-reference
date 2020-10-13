@@ -6,7 +6,7 @@ This project is a reference example of how to integrate ThousandEyes and AppDyna
 This section shows how to embed ThousandEyes dashboard widgets in AppDynamics dashboards, and includes a few dashboard examples.
 
 #### [`native-alerts`](native-alerts/readme.md)
-ThousandEyes provides native alert integration with AppDynamics. See the ThousandEyes [AppDynamics alert integration docs](https://docs.thousandeyes.com/product-documentation/alerts/appdynamics-integration) for more details. This example shows how to set up ThousandEyes alerts, and how to set up AppDynamics policies to respond to ThousandEyes alerts.
+ThousandEyes provides native alert integration with AppDynamics. See the ThousandEyes [AppDynamics alert integration docs](https://docs.thousandeyes.com/product-documentation/alerts/integrations/appdynamics-integration) for more details. This example shows how to set up ThousandEyes alerts, and how to set up AppDynamics policies to respond to ThousandEyes alerts.
 
 #### [`snapshot-integration`](snapshot-integration/readme.md) 
 This section shows how to trigger a ThousandEyes snapshot from AppDynamics using an AppDynamics HTTP request template.
